@@ -11,26 +11,35 @@ import {
   Modal,
   Button,
 } from "react-native";
-//import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import Svg, { Path } from "react-native-svg";
 import { useNavigation, useLocalSearchParams, router } from "expo-router";
 import url from "../../../constants/url.json";
 import axios from "axios";
 import CustomModal from "@/components/modalAlert";
 import { Platform } from "react-native";
+import Logo from "@/components/Logo";
+import SvgContainer from "@/components/SvgContainer";
+import { useFonts } from "expo-font";
+import ModalRounded from "@/components/ModalRounded";
 const Edad: React.FC = () => {
+  const [fontsLoaded] = useFonts({
+    "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
+    "Roboto-ExtraLight.ttf": require("@/assets/fonts/Roboto-ExtraLight.ttf"),
+  });
+  if (!fontsLoaded) {
+    return null;
+  }
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalText, setModalText] = useState("");
+  const [modalTextButton, setModalTextButton] = useState("");
+
   const navigation = useNavigation();
-  const { Nombre, User, Number, password } = useLocalSearchParams();
+  const { username, phoneNumber, nombre } = useLocalSearchParams();
   const [Fecha, setFecha] = useState<Date | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
-  const [AlertText, setAlertText] = useState("");
-  const [isAlertVisible, setAlertVisible] = useState(false);
   const [tempDate, setTempDate] = useState(new Date()); // Para manejar la fecha temporalmente
 
-  const showModalAlert = (message: string) => {
-    setAlertText(message);
-    setAlertVisible(true);
-  };
   const onConfirmDate = () => {
     setFecha(tempDate); // Guardar la fecha seleccionada temporalmente
     calcularTiempoVivido(tempDate); // Calcular la edad al confirmar la fecha
@@ -47,45 +56,6 @@ const Edad: React.FC = () => {
       headerShown: false,
     });
   }, [navigation]);
-  const sendVerificationCode = async () => {
-    try {
-      const response = await axios.post(
-        `${url.url}/api/send_verification_code`,
-        {
-          phone: Number,
-        }
-      );
-
-      if (response.status === 200) {
-        showModalAlert("Código de verificación enviado correctamente.");
-        router.push({
-          pathname: "/screens/Account/VerificationRegister",
-          params: {
-            Number,
-            Nombre,
-            User,
-            password,
-            birthdate: Fecha?.toISOString().split("T")[0],
-          },
-        });
-      } else {
-        showModalAlert("Hubo un error al enviar el código de verificación.");
-        router.push({
-          pathname: "/screens/Account/Register",
-        });
-      }
-    } catch (error) {
-      showModalAlert("Hubo un error al enviar el código de verificación.");
-      router.push({
-        pathname: "/screens/Account/Register",
-      });
-    }
-  };
-  useEffect(() => {
-    if (!Nombre || !User || !Number || !password) {
-      showModalAlert("Por favor, completa todos los campos.");
-    }
-  }, [Nombre, User, Number, password]);
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     if (selectedDate) {
@@ -128,27 +98,34 @@ const Edad: React.FC = () => {
 
   const handleContinuar = () => {
     if (!Fecha) {
-      showModalAlert("Por favor, selecciona tu fecha de nacimiento.");
-    } else {
-      if (edad && edad.anios >= 18) {
-        router.push({
-          pathname: "/screens/Account/VerificationRegister",
-          params: {
-            Nombre,
-            User,
-            Number,
-            password,
-            birthdate: Fecha.toISOString().split("T")[0],
-          },
-        });
-        sendVerificationCode();
-      } else {
-        showModalAlert("Debes ser mayor de edad para registrarte.");
-      }
+      setModalText("Debes ingresar una fecha de nacimiento");
+      setModalTextButton("Entendido");
+      setModalVisible(true);
+      return;
     }
-  };
-  const toggleAlert = () => {
-    setAlertVisible(!isAlertVisible);
+    if (edad && edad.anios < 14) {
+      setModalText("Debes ser mayor de 14 años para continuar");
+      setModalTextButton("Entendido");
+      setModalVisible(true);
+      return;
+    }
+    const fecha = formatDate(Fecha);
+    const data = {
+      username: username,
+      phoneNumber: phoneNumber,
+      nombre: nombre,
+      fechaNacimiento: fecha,
+    };
+    router.push({
+      pathname: "/screens/Account/Password",
+      params: {
+        username: username,
+        phoneNumber: phoneNumber,
+        nombre: nombre,
+        fecha: fecha as string,
+      },
+    });
+    console.log("Datos a enviar:", data);
   };
 
   return (
@@ -157,26 +134,11 @@ const Edad: React.FC = () => {
       style={styles.background}
     >
       <View style={styles.overlay}>
-        <View style={styles.divderechos}>
-          <Text style={styles.derechos}>DERECHOS RESERVADOS</Text>
-        </View>
-        <View style={styles.divimg}>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/LogoLetras.png")}
-          />
-        </View>
-
-        <View style={styles.container}>
-          <Svg width={320} height={344} fill="none">
-            <Path
-              fill="#2D0A42"
-              d="M0 20C0 8.954 8.954 0 20 0h280c11.046 0 20 8.954 20 20v249.632a20 20 0 0 1-14.195 19.139l-143.181 43.431a20.004 20.004 0 0 1-11.834-.069L13.972 288.882A20 20 0 0 1 0 269.812V20Z"
-            />
-          </Svg>
-          <View style={styles.cajabienvenida}>
-            <Text style={styles.bienvenida}>Edad</Text>
-          </View>
+        <Logo existsDerechos={false} />
+        <SvgContainer>
+          <Text style={styles.bienvenida}>
+            Ingresa tu fecha de{"\n"} nacimiento
+          </Text>
           <View style={styles.cajainputs}>
             <TouchableOpacity
               onPress={() => setShowDatePicker(true)}
@@ -204,12 +166,12 @@ const Edad: React.FC = () => {
             >
               <View style={styles.modalContainer}>
                 <View style={styles.modalContent}>
-                  {/* <DateTimePicker
+                  <DateTimePicker
                     value={tempDate}
                     mode="date"
                     display="spinner"
                     onChange={handleDateChange}
-                  /> */}
+                  />
                   <Button title="Confirmar" onPress={onConfirmDate} />
                   <Button
                     title="Cancelar"
@@ -220,14 +182,14 @@ const Edad: React.FC = () => {
             </Modal>
           )}
 
-          {/* {Platform.OS !== "ios" && showDatePicker && (
+          {Platform.OS !== "ios" && showDatePicker && (
             <DateTimePicker
               value={Fecha || new Date()}
               mode="date"
               display="spinner"
               onChange={handleDateChange}
             />
-          )} */}
+          )}
           <View style={styles.cajainferior}>
             <View style={styles.cajacontent}>
               <View style={styles.caja}>
@@ -259,16 +221,15 @@ const Edad: React.FC = () => {
           <TouchableOpacity style={styles.button} onPress={handleContinuar}>
             <Text style={styles.buttonText}>Continuar</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-      <CustomModal
-        onBackdropPress={toggleAlert}
-        isVisible={isAlertVisible}
-        toggleModal={toggleAlert}
-        modalText={AlertText}
-      />
-      <View style={styles.divsince}>
-        <Text style={styles.since}>Since 2024</Text>
+        </SvgContainer>
+        <ModalRounded
+          text={modalText}
+          textbutton={modalTextButton}
+          isVisible={modalVisible}
+          onClose={() => {
+            setModalVisible(false);
+          }}
+        />
       </View>
     </ImageBackground>
   );
@@ -361,13 +322,15 @@ const styles = StyleSheet.create({
   },
   bienvenida: {
     color: "white",
-    fontSize: 28,
-    fontWeight: "bold",
+    fontFamily: "Inter-ExtraLightItalic",
+    fontSize: 24,
+    marginTop: "9%",
+    textAlign: "center",
+    width: "100%",
   },
   cajainputs: {
-    position: "absolute",
-    top: "15%",
     width: "100%",
+    marginTop: "2%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -391,8 +354,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   cajainferior: {
-    position: "absolute",
-    top: "36%",
+    marginTop: "5%",
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
@@ -426,19 +388,27 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   button: {
-    bottom: "20%",
+    width: "65%",
+    height: "12%",
+    marginTop: "7%",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    width: "70%",
-    height: "10%",
-    backgroundColor: "rgba(255, 255, 255, 1)",
-    borderRadius: 10,
+    backgroundColor: "#722D86", // Color principal
+    borderRadius: 15,
+    borderColor: "#430857", // Borde más oscuro
+    borderBottomWidth: 5,
+    borderRightWidth: 5,
+    shadowColor: "#5E0D75", // Añade sombra
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5, // Sombra en Android
   },
   buttonText: {
-    color: "#000",
+    fontFamily: "Roboto-ExtraLight.ttf",
     fontSize: 18,
-    fontWeight: "bold",
+    color: "white",
+    textAlign: "center",
   },
 });
 

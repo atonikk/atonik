@@ -9,13 +9,20 @@ import {
   Alert,
   ScrollView,
   TextInput,
+  Platform,
+  ActionSheetIOS,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RootStackParamList } from "@/app/_layout";
 import { jwtDecode } from "jwt-decode";
-import { useNavigation, useFocusEffect, router } from "expo-router";
+import {
+  useNavigation,
+  useFocusEffect,
+  router,
+  useLocalSearchParams,
+} from "expo-router";
 import url from "../../constants/url.json";
+import { RootStackParamList } from "@/app/_layout";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import * as FileSystem from "expo-file-system";
@@ -23,6 +30,8 @@ import Modal from "react-native-modal";
 import Panel from "../../components/panelPushUp";
 import CustomModal from "../../components/modalAlert";
 import EventListProfile from "../../components/eventListTopProfile";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 const { width } = Dimensions.get("window");
 
 const proportionalFontSize = (size: number) => {
@@ -31,13 +40,12 @@ const proportionalFontSize = (size: number) => {
 };
 
 const Profile: React.FC = () => {
+  const { username, photo } = useLocalSearchParams();
   const [isModalVisible, setModalVisible] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [descriptionProfile, setdescriptionProfile] = useState<string | null>(
     null
   );
-  const [username, setUsername] = useState<string | null>(null);
-
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [followers, setFollowers] = useState<string | null>(null);
   const [following, setFollowing] = useState<string | null>(null);
@@ -73,11 +81,11 @@ const Profile: React.FC = () => {
   const checkToken = async () => {
     try {
       const storedToken = await AsyncStorage.getItem("access_token");
-     
+
       if (storedToken !== null) {
         setToken(storedToken);
         setIsVisible(false);
-    
+
         const decodedToken = jwtDecode<DecodedToken>(storedToken);
         decode();
       } else {
@@ -102,10 +110,15 @@ const Profile: React.FC = () => {
   const cleanData = async () => {
     setAlertVisible(true);
     try {
+      await GoogleSignin.signOut();
+      console.log("Credenciales de google eliminadas");
+    } catch (error) {
+      console.log("Error al eliminar las credenciales: ", error.message);
+    }
+    try {
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("refresh_token");
       setdescriptionProfile(null);
-      setUsername(null);
       setProfilePhoto(null);
       setFollowers(null);
       setFollowing(null);
@@ -139,13 +152,11 @@ const Profile: React.FC = () => {
       );
       if (response.ok) {
         const data = await response.json();
-  
-       
+
         setdescriptionProfile(data.description);
         setProfilePhoto(data.profile_photo);
         setFollowers(data.followersnum);
         setFollowing(data.followingnum);
-        
       } else {
         const errorData = await response.json();
         console.log("Error data:", errorData);
@@ -169,9 +180,8 @@ const Profile: React.FC = () => {
         try {
           const decodedToken = jwtDecode<DecodedToken>(token);
           setDecodedToken(decodedToken);
-   
-  
-          setUsername(decodedToken.sub.user);
+
+          // setUsername(decodedToken.sub.user);
           if (decodedToken.sub.user) {
             await fetchUserData(decodedToken.sub.user, token);
           }
@@ -190,65 +200,106 @@ const Profile: React.FC = () => {
   }, [navigation]);
 
   const pickImage = async () => {
-    if (token) {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Error", "Necesitas permisos para acceder a la galería");
-        return;
+    const { status: galleryStatus } =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status: cameraStatus } =
+      await ImagePicker.requestCameraPermissionsAsync();
+
+    if (galleryStatus !== "granted" || cameraStatus !== "granted") {
+      Alert.alert(
+        "Error",
+        "Necesitas permisos para acceder a la galería y la cámara"
+      );
+      return;
+    }
+
+    const showOptions = async () => {
+      if (Platform.OS === "ios") {
+        ActionSheetIOS.showActionSheetWithOptions(
+          {
+            options: ["Cancelar", "Abrir galería", "Tomar foto"],
+            cancelButtonIndex: 0,
+          },
+          async (buttonIndex) => {
+            if (buttonIndex === 1) {
+              await openGallery();
+            } else if (buttonIndex === 2) {
+              await openCamera();
+            }
+          }
+        );
+      } else {
+        const response = await new Promise((resolve) => {
+          Alert.alert(
+            "Seleccionar una opción",
+            "Elige cómo quieres añadir tu imagen",
+            [
+              {
+                text: "Cancelar",
+                style: "cancel",
+                onPress: () => resolve(null),
+              },
+              { text: "Abrir galería", onPress: () => resolve("gallery") },
+              { text: "Tomar foto", onPress: () => resolve("camera") },
+            ]
+          );
+        });
+
+        if (response === "gallery") {
+          await openGallery();
+        } else if (response === "camera") {
+          await openCamera();
+        }
       }
+    };
+
+    const openGallery = async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 1,
         allowsEditing: true,
+        aspect: [3, 3],
       });
-  
       if (!result.canceled) {
-        const { uri, type } = result.assets[0];
-        const imageType = type ?? "image/jpeg"; // Asigna un valor predeterminado si `type` es `undefined`
-        const fileName = `image_${Date.now()}`; // Nombre único basado en la fecha y hora
-        setUpdateImage(uri);
-        await uploadImage(uri, imageType, fileName);
+        const { uri } = result.assets[0];
+
+        uploadImage(uri, username ? username : "user");
       }
-    } else {
-      togglePanel();
-    }
+    };
+
+    const openCamera = async () => {
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 1,
+        allowsEditing: true,
+        aspect: [3, 3],
+      });
+      if (!result.canceled) {
+        const { uri } = result.assets[0];
+        setImageUri(uri);
+        uploadImage(uri, username ? username : "user");
+      }
+    };
+
+    await showOptions();
   };
-  const uploadImage = async (
-    imageUri: string,
-    imageType: string,
-    fileName: string
-  ) => {
+  const uploadImage = async (imageUri: string, fileName: string) => {
+    console.log("Subiendo imagen", fileName);
     try {
       const formData = new FormData();
       formData.append("file", {
         uri: imageUri,
-        name: `${fileName}.jpg`,
-        type: "image/jpeg",
-      } as any);
-      formData.append("asset_folder", "profile");
-
-      formData.append("public_id", `${fileName}_${new Date().toISOString()}`);
-
-
-      const response = await axios.post(
-        `${url.url}/api/upload_photo`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-
+        name: `${fileName}.jpg`, // Nombre del archivo con extensión
+        type: "image/jpeg", // Tipo MIME del archivo
+      });
+      const response = await axios.post(`${url.url}/upload_photo`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       if (response.status === 200) {
-     
-        setProfilePhoto(response.data.url);
       } else {
-     
+        console.log("Error al subir la imagen");
       }
     } catch (error) {
       console.error("Error en la subida de imagen", error);
@@ -268,7 +319,6 @@ const Profile: React.FC = () => {
         }),
       });
       if (response.ok) {
-  
         closeModal();
         setdescriptionProfile(newDescription);
       }
@@ -291,7 +341,7 @@ const Profile: React.FC = () => {
       });
       if (response.ok) {
         Alert.alert("Se ha eliminado la cuenta");
-    
+
         cleanData();
       }
     } catch (error) {
@@ -300,7 +350,7 @@ const Profile: React.FC = () => {
     }
   };
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.superior}>
         <Image
           source={require("../../assets/images/logo.png")}
@@ -311,9 +361,9 @@ const Profile: React.FC = () => {
         </View>
       </View>
       <View style={styles.middle}>
-        {profilePhoto ? (
+        {photo ? (
           <View style={styles.cajafoto}>
-            <Image source={{ uri: profilePhoto }} style={styles.profilePhoto} />
+            <Image source={{ uri: photo }} style={styles.profilePhoto} />
             <Pressable
               onPress={pickImage}
               style={({ pressed }) => [
@@ -343,7 +393,10 @@ const Profile: React.FC = () => {
               style={styles.profilePhoto}
             />
             <Pressable
-              onPress={pickImage}
+              onPress={() => {
+                cleanData();
+              }}
+              // onPress={pickImage}
               style={({ pressed }) => [
                 {
                   transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
@@ -458,11 +511,11 @@ const Profile: React.FC = () => {
         </View>
       </View>
       <View style={styles.cajaeventos}>
-        {username ? (
+        {/* {username ? (
           <EventListProfile usernameToget={username ? username : ""} />
         ) : (
           <Text>Esta vacio por aqui ...</Text>
-        )}
+        )} */}
       </View>
       <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
         <View style={styles.modalContent}>
@@ -495,7 +548,7 @@ const Profile: React.FC = () => {
         togglePanel={togglePanel}
         closePanel={closePanel}
       />
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -508,7 +561,7 @@ const styles = StyleSheet.create({
   },
   superior: {
     position: "relative",
-    top: '1%',
+    top: "1%",
     width: "100%",
     height: "15%",
     borderBottomWidth: 2,

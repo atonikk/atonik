@@ -19,7 +19,8 @@ import { useNavigation, router, useFocusEffect } from "expo-router";
 import url from "../../../constants/url.json";
 import { jwtDecode } from "jwt-decode";
 import CustomModal from "../../../components/modalAlert";
-
+import Logo from "@/components/Logo";
+import SvgContainer from "@/components/SvgContainer";
 const { width, height } = Dimensions.get("window");
 const buttonWidth = width * 0.5;
 const buttonHeight = height * 0.05;
@@ -74,10 +75,7 @@ const Login: React.FC = () => {
       if (response && response.data) {
         const token = response.data.access_token;
         const decodedToken = jwtDecode<DecodedToken>(token);
-
         await AsyncStorage.setItem("access_token", response.data.access_token);
-        setAlertText("Bienvenido, " + decodedToken.sub.user + "!");
-        setAlertVisible(true);
         setTimeout(() => {
           router.push({
             pathname: "/(tabs)/home",
@@ -112,31 +110,15 @@ const Login: React.FC = () => {
       style={styles.background}
     >
       <View style={styles.overlay}>
-        <View style={styles.divderechos}>
-          <Text style={styles.derechos}>DERECHOS RESERVADOS</Text>
-        </View>
-        <View style={styles.divimg}>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/LogoLetras.png")}
-          />
-        </View>
-
-        <View style={styles.svgContainer}>
-          <Svg width={300} height={290} fill="none">
-            <Path
-              fill="#2D0A42"
-              d="M0 20.86c0-11.045 8.954-20 20-20h260c11.046 0 20 8.955 20 20v210.97a20 20 0 0 1-14.608 19.26l-132.984 37.23a20.01 20.01 0 0 1-10.994-.06L14.398 251.201A20 20 0 0 1 0 232.001V20.861Z"
-            />
-          </Svg>
-          <View style={styles.cajabienvenida}>
-            <Text style={styles.bienvenida}>Bienvenido</Text>
-          </View>
+        <Logo existsDerechos={false} />
+        <SvgContainer>
+          <Text style={styles.bienvenida}>Bienvenido</Text>
           <View style={styles.cajainputs}>
             <View style={styles.inputcaja}>
               <TextInput
                 style={[styles.input]}
                 placeholder="Usuario o Numero de telefono"
+                autoCapitalize="none"
                 placeholderTextColor="#7C7C7C"
                 value={usuario}
                 onChangeText={setUsuario}
@@ -179,20 +161,18 @@ const Login: React.FC = () => {
               </Pressable>
             </View>
           </View>
-          <View style={styles.buttoncaja}>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { width: buttonWidth, height: buttonHeight },
-              ]}
-              onPress={() => {
-                logueo();
-              }}
-            >
-              <Text style={styles.buttonText}>Continuar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+          <TouchableOpacity
+            style={[
+              styles.button,
+              { width: buttonWidth, height: buttonHeight },
+            ]}
+            onPress={() => {
+              logueo();
+            }}
+          >
+            <Text style={styles.buttonText}>Continuar</Text>
+          </TouchableOpacity>
+        </SvgContainer>
       </View>
       <CustomModal
         onBackdropPress={toggleAlert}
@@ -200,9 +180,6 @@ const Login: React.FC = () => {
         toggleModal={toggleAlert}
         modalText={AlertText}
       />
-      <View style={styles.divsince}>
-        <Text style={styles.since}>Since 2024</Text>
-      </View>
     </ImageBackground>
   );
 };
@@ -249,33 +226,15 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "contain",
   },
-  svgContainer: {
-    bottom: "20%",
-    width: 300,
-    height: 290,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  cajabienvenida: {
-    width: "100%",
-    height: "18%",
-    position: "absolute",
-    top: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: "2%",
-  },
   bienvenida: {
-    position: "absolute",
+    marginTop: "10%",
     color: "white",
     fontSize: 30,
     fontWeight: "light",
   },
   cajainputs: {
-    position: "absolute",
     width: "90%",
-    top: "20%",
+    marginTop: "5%",
     alignItems: "flex-start",
   },
   inputcaja: {
@@ -316,18 +275,11 @@ const styles = StyleSheet.create({
     position: "relative",
     fontStyle: "italic",
   },
-  buttoncaja: {
-    bottom: "15%",
-    height: "15%",
-    width: "100%",
-    position: "absolute",
-    alignItems: "center",
-  },
   button: {
-    position: "absolute",
     backgroundColor: "rgba(255, 255, 255, 1)",
     borderRadius: 10,
     justifyContent: "center",
+    marginTop: "5%",
     alignItems: "center",
   },
   buttonText: {

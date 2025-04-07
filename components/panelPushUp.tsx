@@ -49,7 +49,7 @@ export default function Panel({ isVisible, togglePanel, closePanel }) {
             <TouchableOpacity
               onPress={() =>
                 router.push({
-                  pathname: "/screens/Account/Login",
+                  pathname: "/screens/Account/ChooseLogin",
                 })
               }
               style={styles.panelButton}

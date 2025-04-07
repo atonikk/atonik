@@ -18,11 +18,10 @@ import { StatusBar } from "expo-status-bar";
 import SignUpGoogle from "@/components/SignUpGoogle";
 import SvgContainer from "@/components/SvgContainer";
 import Logo from "@/components/Logo";
-import url from "@/constants/url.json";
+import GoogleLoginButton from "@/components/GoogleLoginButton";
 import { useFonts } from "expo-font";
-import { InteractionManager } from "react-native";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
+import url from "@/constants/url.json";
 import {
   GoogleSignin,
   GoogleSigninButton,
@@ -30,37 +29,27 @@ import {
   isErrorWithCode,
   statusCodes,
 } from "@react-native-google-signin/google-signin";
-import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const { width, height } = Dimensions.get("window");
-interface User {
-  email: string;
-  familyName: string;
-  givenName: string;
-  id: string;
-  name: string;
-  photo: string;
-}
-const Register: React.FC = () => {
+
+const ChooseLogin: React.FC = () => {
   const [fontsLoaded] = useFonts({
     "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
     "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
   });
-  const [params, setParams] = useState<User>();
-
-  const setUserParams = (user: User) => {
-    setParams({
-      email: user.email,
-      familyName: user.familyName,
-      givenName: user.givenName,
-      id: user.id,
-      name: user.name,
-      photo: user.photo,
-    });
-  };
   const [message, setMessage] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [photo, setPhoto] = useState("");
+  const [isVisible, setIsVisible] = useState(false);
+
+  const navigation = useNavigation();
+  const [Number, setNumber] = useState<string>("");
+  const [Nombre, setNombre] = useState<string>("");
+  const [User, setUser] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [AlertText, setAlertText] = useState("");
+  const [isAlertVisible, setAlertVisible] = useState(false);
   useEffect(() => {
     GoogleSignin.configure({
       webClientId:
@@ -69,75 +58,67 @@ const Register: React.FC = () => {
     });
   }, []);
   useEffect(() => {
-    if (params) {
-      const { email, familyName, givenName, id, name, photo } = params;
-      // router.push({
-      //   pathname: "/screens/Account/UserGoogle",
-      //   params: { email, familyName, givenName, id, name, photo },
-      // });
-    }
-  }, []);
-  const checkIfSignedIn = async () => {
-    const isSignedIn = (await GoogleSignin.getCurrentUser()) !== null;
-    if (isSignedIn) {
-      const userInfo = await GoogleSignin.getCurrentUser();
-      console.log("Ya hay sesión iniciada:", userInfo?.user.photo);
-      router.push({
-        pathname: "/(tabs)/profile",
-      });
-    } else {
-      console.log("No hay sesión iniciada.");
-    }
-  };
-  useEffect(() => {
     console.log("Comprobando si ya hay sesión iniciada...");
+    const checkIfSignedIn = async () => {
+      const isSignedIn = (await GoogleSignin.getCurrentUser()) !== null;
+      if (isSignedIn) {
+        const userInfo = await GoogleSignin.getCurrentUser();
+        console.log("Ya hay sesión iniciada:", userInfo?.user.photo);
+        await AsyncStorage.setItem("userPhoto", userInfo?.user.photo || "");
+        router.push({
+          pathname: "/(tabs)/profile",
+        });
+      } else {
+        console.log("No hay sesión iniciada.");
+      }
+    };
 
-    checkIfSignedIn()
-      .then(() => {
-        console.log("Comprobación de sesión completada.");
-      })
-      .catch((error) => {
-        console.error("Error al comprobar la sesión:", error);
-      });
+    checkIfSignedIn();
   }, []);
-  const goToUserGoogle = (
+
+  const existUser = async (
     email: string,
     familyName: string,
     givenName: string,
-    id: string,
     name: string,
     photo: string,
-    idToken: string
-  ) => {
-    router.push({
-      pathname: "/screens/Account/UserGoogle",
-      params: { email, familyName, givenName, id, name, photo },
-    });
-  };
+    id: string
+  ) => {};
+
   const handleGoogleSignIn = async () => {
     try {
-      await GoogleSignin.signOut();
-      console.log("Sesión cerrada");
       await GoogleSignin.hasPlayServices();
       const response = await GoogleSignin.signIn();
       if (isSuccessResponse(response)) {
         const { idToken, user } = response.data;
+        console.log("idToken: ", idToken);
+        console.log("user: ", user);
         const { email, familyName, givenName, id, name, photo } = user;
-
-        if (isSuccessResponse(response)) {
-          const { idToken, user } = response.data;
-          const { email, familyName, givenName, id, name, photo } = user;
-
-          console.log("✅ Datos obtenidos:", user);
-
-          // Esperar a que terminen las interacciones (modal de Google)
-          InteractionManager.runAfterInteractions(() => {
-            // Aquí haces navegación o renderizas
-            router.push({
-              pathname: "/screens/Account/UserGoogle",
-              params: { email, familyName, givenName, id, name, photo },
-            });
+        console.log(id);
+        const responseapi = await axios.post(`${url.url}/validate_token`, {
+          token: id,
+        });
+        if (responseapi.status === 200) {
+          console.log("Usuario ya existe");
+          await AsyncStorage.setItem(
+            "access_token",
+            responseapi.data.access_token
+          );
+        } else if (responseapi.status === 404) {
+          console.log("Usuario no existe");
+          router.push({
+            pathname: "/screens/Account/UserGoogle",
+            params: {
+              email,
+              familyName,
+              givenName,
+              id,
+              name,
+              photo,
+            },
           });
+        } else {
+          throw new Error("Error checking user existence");
         }
       } else {
         console.log("El usuario cancelo el inicio de sesion");
@@ -169,22 +150,7 @@ const Register: React.FC = () => {
       }
     }
   };
-  const navigation = useNavigation();
-  const [Number, setNumber] = useState<string>("");
-  const [Nombre, setNombre] = useState<string>("");
-  const [User, setUser] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
-  const [confirmPassword, setConfirmPassword] = useState<string>("");
-  const [AlertText, setAlertText] = useState("");
-  const [isAlertVisible, setAlertVisible] = useState(false);
-  const showModalAlert = (message: string) => {
-    setAlertText(message);
-    setAlertVisible(true);
-  };
-  const toggleAlert = () => {
-    setAlertVisible(!isAlertVisible);
-  };
+
   const [isPasswordConfirmVisible, setIsPasswordConfirmVisible] =
     useState<boolean>(false);
   const [currentIcon, setCurrentIcon] = useState<string>("closed");
@@ -200,23 +166,13 @@ const Register: React.FC = () => {
     setIsPasswordConfirmVisible(!isPasswordConfirmVisible);
     setCurrentConfirmIcon(currentConfirmIcon === "closed" ? "pass" : "closed");
   };
-  const handleRegister = () => {
-    if (password !== confirmPassword) {
-      showModalAlert("Las contrasenas no coinciden");
-      return;
-    } else {
-      router.push({
-        pathname: "/screens/Account/Edad",
-        params: { Number, Nombre, User, password },
-      });
-    }
-  };
 
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: false,
     });
   }, [navigation]);
+
   return (
     <>
       <StatusBar style="light" backgroundColor="#000000" />
@@ -240,7 +196,7 @@ const Register: React.FC = () => {
               }}
             >
               {" "}
-              Elige un metodo{"\n"}de registro
+              Elige un metodo{"\n"}de inicio de sesion
             </Text>
             <View
               style={{
@@ -254,7 +210,7 @@ const Register: React.FC = () => {
                 paddingVertical: 20,
               }}
             >
-              <SignUpGoogle onPress={handleGoogleSignIn} />
+              <GoogleLoginButton onPress={handleGoogleSignIn} />
               <View
                 style={{
                   width: "100%",
@@ -273,7 +229,6 @@ const Register: React.FC = () => {
                     fontSize: 24,
                     fontFamily: "Inter-ExtraLightItalic",
                     position: "absolute",
-
                     top: 0,
                     marginHorizontal: "5%",
                     marginVertical: "2%",
@@ -289,7 +244,7 @@ const Register: React.FC = () => {
               <TouchableOpacity
                 onPress={() => {
                   router.push({
-                    pathname: "/screens/Account/User",
+                    pathname: "/screens/Account/Login",
                   });
                 }}
                 style={{
@@ -329,7 +284,7 @@ const Register: React.FC = () => {
                     fontFamily: "Roboto-Medium",
                   }}
                 >
-                  Registrate con telefono
+                  Numero de telefono
                 </Text>
               </TouchableOpacity>
             </View>
@@ -486,4 +441,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register;
+export default ChooseLogin;

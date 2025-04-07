@@ -46,7 +46,6 @@ export default function TabLayout() {
           paddingTop: 10,
           backgroundColor: "#010b1c",
           height: 70,
-          fontSize: 12,
         },
         headerShown: false,
         tabBarActiveTintColor: "#c494ff",

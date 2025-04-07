@@ -23,6 +23,8 @@ import EventItem from "@/components/eventItemListSearch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { criticallyDampedSpringCalculations } from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
 import Panel from "@/components/panelPushUp";
+import { Dimensions } from "react-native";
+const { height, width } = Dimensions.get("window");
 export default function Tab() {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Usuarios");
@@ -63,19 +65,16 @@ export default function Tab() {
     latitude: string;
     longitude: string;
     images: string[];
-    
   }
 
   const searchUsers = async () => {
-    setError("Inicia sesion para buscar usuarios");
     try {
       const token = await AsyncStorage.getItem("access_token");
+      console.log("Haciendo la busqueda");
       if (token === null) {
         togglePanel();
       } else {
         setLoading(true);
-
-    
         const response = await axios.get(
           `${url.url}/api/search/username?keyword=${keyword}`,
           {
@@ -84,10 +83,7 @@ export default function Tab() {
             },
           }
         );
-        if (response.data.length === 0) {
-          setError("No se encontraron usuarios con el criterio de búsqueda.");
-        }
-
+        console.log(response.data);
         setUsers(response.data);
       }
     } catch (error) {
@@ -117,7 +113,6 @@ export default function Tab() {
         setError("No se encontraron eventos con el criterio de búsqueda.");
       }
       setEvents(response.data);
-  
     } catch (error) {
       setError("No se pudo realizar la búsqueda.");
     } finally {
@@ -229,11 +224,7 @@ export default function Tab() {
         ) : activeTab === "Eventos" ? (
           events.length > 0 ? (
             <View style={styles.resultadosDiv}>
-              <EventItem
-                events={events}
-                state={true}
-                navigation={navigation}
-              />
+              <EventItem events={events} state={true} navigation={navigation} />
             </View>
           ) : (
             <View style={styles.noResultsDiv}>
@@ -257,6 +248,7 @@ const styles = StyleSheet.create({
   container: {
     display: "flex",
     flexDirection: "column",
+    padding: "2%",
     flex: 1, // Usar flex: 1 para ocupar toda la pantalla
     backgroundColor: "#131313",
   },
@@ -280,7 +272,7 @@ const styles = StyleSheet.create({
     borderColor: "#a681ff",
     borderWidth: 2,
     width: "90%",
-    height: "50%",
+    height: height * 0.06,
     borderRadius: 16,
     flexDirection: "row",
   },
@@ -340,12 +332,11 @@ const styles = StyleSheet.create({
     color: "#ffffffd3",
   },
   resultadosDiv: {
-    paddingTop: "5%",
+    marginTop: "20%",
     alignItems: "center",
     width: "100%",
     height: "100%",
-    position: "absolute",
-    top: "12%",
+    paddingBottom: height * 0.1,
   },
 
   errorText: {
