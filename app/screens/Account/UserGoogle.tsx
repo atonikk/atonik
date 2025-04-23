@@ -19,23 +19,10 @@ import url from "@/constants/url.json";
 import { router, useLocalSearchParams } from "expo-router";
 import ModalRounded from "@/components/ModalRounded";
 import { Dimensions } from "react-native";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  isSuccessResponse,
-  isErrorWithCode,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 const { width, height } = Dimensions.get("window");
 const UserGoogle = () => {
-  useEffect(() => {
-    console.log("ingresando a UserGoogle");
-    GoogleSignin.configure({
-      webClientId:
-        "667525490941-h60k47ugmhglbjmb9hkp17b7uiara5jg.apps.googleusercontent.com", // Replace with the correct web client ID from Google API Console
-      offlineAccess: true, // Para obtener el refresh token
-    });
-  }, []);
   const { email, familyName, givenName, id, name, photo } =
     useLocalSearchParams();
   const [username, setUsername] = useState<string>("");
@@ -44,6 +31,7 @@ const UserGoogle = () => {
   const [modalRoundedText, setModalRoundedText] = useState<string>("");
   const [modalTextButton, setModalTextButton] = useState<string>("");
   useEffect(() => {
+    console.log("Entrando a usergoogle")
     console.log("Email:", email);
     console.log("Family Name:", familyName);
     console.log("Given Name:", givenName);
@@ -63,8 +51,11 @@ const UserGoogle = () => {
         username,
       });
       if (response.status === 201) {
-        router.push({
-          pathname: "/(tabs)/profile",
+        const token = response.data.access_token;
+        await AsyncStorage.setItem("access_token", response.data.access_token);
+        console.log("Token obtenido de la respuesta:", token);
+        router.replace({
+          pathname: "/(tabs)/home",
           params: {
             username: username,
             photo: photo,

@@ -21,15 +21,8 @@ import Logo from "@/components/Logo";
 import url from "@/constants/url.json";
 import { useFonts } from "expo-font";
 import { InteractionManager } from "react-native";
-
+import * as Google from "expo-auth-session/providers/google";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  isSuccessResponse,
-  isErrorWithCode,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
 import axios from "axios";
 const { width, height } = Dimensions.get("window");
 interface User {
@@ -61,13 +54,10 @@ const Register: React.FC = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState("");
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId:
-        "667525490941-h60k47ugmhglbjmb9hkp17b7uiara5jg.apps.googleusercontent.com", // Replace with the correct web client ID from Google API Console
-      offlineAccess: true, // Para obtener el refresh token
-    });
-  }, []);
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    androidClientId:
+      "667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com",
+  });
   useEffect(() => {
     if (params) {
       const { email, familyName, givenName, id, name, photo } = params;
@@ -77,29 +67,29 @@ const Register: React.FC = () => {
       // });
     }
   }, []);
-  const checkIfSignedIn = async () => {
-    const isSignedIn = (await GoogleSignin.getCurrentUser()) !== null;
-    if (isSignedIn) {
-      const userInfo = await GoogleSignin.getCurrentUser();
-      console.log("Ya hay sesión iniciada:", userInfo?.user.photo);
-      router.push({
-        pathname: "/(tabs)/profile",
-      });
-    } else {
-      console.log("No hay sesión iniciada.");
-    }
-  };
-  useEffect(() => {
-    console.log("Comprobando si ya hay sesión iniciada...");
+  // const checkIfSignedIn = async () => {
+  //   const isSignedIn = (await GoogleSignin.getCurrentUser()) !== null;
+  //   if (isSignedIn) {
+  //     const userInfo = await GoogleSignin.getCurrentUser();
+  //     console.log("Ya hay sesión iniciada:", userInfo?.user.photo);
+  //     router.push({
+  //       pathname: "/(tabs)/profile",
+  //     });
+  //   } else {
+  //     console.log("No hay sesión iniciada.");
+  //   }
+  // };
+  // useEffect(() => {
+  //   console.log("Comprobando si ya hay sesión iniciada...");
 
-    checkIfSignedIn()
-      .then(() => {
-        console.log("Comprobación de sesión completada.");
-      })
-      .catch((error) => {
-        console.error("Error al comprobar la sesión:", error);
-      });
-  }, []);
+  //   checkIfSignedIn()
+  //     .then(() => {
+  //       console.log("Comprobación de sesión completada.");
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error al comprobar la sesión:", error);
+  //     });
+  // }, []);
   const goToUserGoogle = (
     email: string,
     familyName: string,
@@ -114,61 +104,60 @@ const Register: React.FC = () => {
       params: { email, familyName, givenName, id, name, photo },
     });
   };
-  const handleGoogleSignIn = async () => {
-    try {
-      await GoogleSignin.signOut();
-      console.log("Sesión cerrada");
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (isSuccessResponse(response)) {
-        const { idToken, user } = response.data;
-        const { email, familyName, givenName, id, name, photo } = user;
+  // const handleGoogleSignIn = async () => {
+  //   try {
+  //     await GoogleSignin.signOut();
+  //     console.log("Sesión cerrada");
+  //     await GoogleSignin.hasPlayServices();
+  //     const response = await GoogleSignin.signIn();
+  //     if (isSuccessResponse(response)) {
+  //       const { idToken, user } = response.data;
+  //       const { email, familyName, givenName, id, name, photo } = user;
 
-        if (isSuccessResponse(response)) {
-          const { idToken, user } = response.data;
-          const { email, familyName, givenName, id, name, photo } = user;
+  //       if (isSuccessResponse(response)) {
+  //         const { idToken, user } = response.data;
+  //         const { email, familyName, givenName, id, name, photo } = user;
 
-          console.log("✅ Datos obtenidos:", user);
+  //         console.log("✅ Datos obtenidos:", user);
 
-          // Esperar a que terminen las interacciones (modal de Google)
-          InteractionManager.runAfterInteractions(() => {
-            // Aquí haces navegación o renderizas
-            router.push({
-              pathname: "/screens/Account/UserGoogle",
-              params: { email, familyName, givenName, id, name, photo },
-            });
-          });
-        }
-      } else {
-        console.log("El usuario cancelo el inicio de sesion");
-      }
-    } catch (error) {
-      if (isErrorWithCode(error)) {
-        switch (error.code) {
-          case statusCodes.IN_PROGRESS:
-            setMessage("El inicio de sesión ya está en progreso");
-            console.log("El inicio de sesión ya está en progreso");
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            setMessage("Los servicios de Google Play no están disponibles");
-            console.log("Los servicios de Google Play no están disponibles");
-            break;
-          case statusCodes.SIGN_IN_CANCELLED:
-            setMessage("El usuario canceló el inicio de sesión");
-            console.log("El usuario canceló el inicio de sesión");
-            break;
-          case statusCodes.SIGN_IN_REQUIRED:
-            setMessage("Se requiere inicio de sesión");
-            console.log("Se requiere inicio de sesión");
-            break;
-          default:
-            console.log("Error desconocido: ", error.message);
-        }
-      } else {
-        console.log("Error: ", error.message);
-      }
-    }
-  };
+  //         // Esperar a que terminen las interacciones (modal de Google)
+  //         InteractionManager.runAfterInteractions(() => {
+  //           // Aquí haces navegación o renderizas
+  //           router.push({
+  //             pathname: "/screens/Account/UserGoogle",
+  //             params: { email, familyName, givenName, id, name, photo },
+  //           });
+  //         });
+  //       }
+  //     } else {
+  //       console.log("El usuario cancelo el inicio de sesion");
+  //     }
+  //   } catch (error) {
+  //     if (isErrorWithCode(error)) {
+  //       switch (error.code) {
+  //         case statusCodes.IN_PROGRESS:
+  //           setMessage("El inicio de sesión ya está en progreso");
+  //           console.log("El inicio de sesión ya está en progreso");
+  //           break;
+  //         case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
+  //           setMessage("Los servicios de Google Play no están disponibles");
+  //           console.log("Los servicios de Google Play no están disponibles");
+  //           break;
+  //         case statusCodes.SIGN_IN_CANCELLED:
+  //           setMessage("El usuario canceló el inicio de sesión");
+  //           console.log("El usuario canceló el inicio de sesión");
+  //           break;
+  //         case statusCodes.SIGN_IN_REQUIRED:
+  //           setMessage("Se requiere inicio de sesión");
+  //           console.log("Se requiere inicio de sesión");
+  //           break;
+  //         default:
+  //           console.log("Error desconocido: ", error.message);
+  //       }
+  //     } else {
+  //       console.log("Error: ", error.message);
+  //     }
+  //   }
   const navigation = useNavigation();
   const [Number, setNumber] = useState<string>("");
   const [Nombre, setNombre] = useState<string>("");
@@ -178,6 +167,7 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
+
   const showModalAlert = (message: string) => {
     setAlertText(message);
     setAlertVisible(true);
@@ -200,23 +190,69 @@ const Register: React.FC = () => {
     setIsPasswordConfirmVisible(!isPasswordConfirmVisible);
     setCurrentConfirmIcon(currentConfirmIcon === "closed" ? "pass" : "closed");
   };
-  const handleRegister = () => {
-    if (password !== confirmPassword) {
-      showModalAlert("Las contrasenas no coinciden");
-      return;
-    } else {
-      router.push({
-        pathname: "/screens/Account/Edad",
-        params: { Number, Nombre, User, password },
+  const checkUser = async (
+    email: string,
+    familyName: string,
+    givenName: string,
+    id: string,
+    name: string,
+    photo: string,
+    idToken: string
+  ) => {
+    try {
+      const response = await axios.post(`${url.url}/validate_token`, {
+        token: idToken,
       });
+      if (response.status === 200) {
+        console.log("Usuario encontrado en la base de datos");
+        await AsyncStorage.setItem("access_token", response.data.access_token);
+        router.replace({
+          pathname: "/(tabs)/home",
+        });
+      }
+      if (response.status === 201) {
+        console.log("Nuevo usuario registrado exitosamente");
+        router.replace({
+          pathname: "/screens/Account/UserGoogle",
+          params: {
+            email,
+            familyName,
+            givenName,
+            id,
+            name,
+            photo,
+          },
+        });
+      }
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        console.log("Usuario no encontrado, redirigiendo a registro");
+        const { google_id, name, email, profile_photo } = error.response.data;
+      } else {
+        console.log("Error validando token:", error.message);
+      }
     }
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  useEffect(() => {
+    if (response?.type === "success") {
+      console.log("Usuario loggeado");
+      setTimeout(() => {
+        const decodedToken = JSON.parse(atob(response.params.id_token.split('.')[1]));
+        const { email, family_name: familyName, given_name: givenName, sub: id, name, picture: photo } = decodedToken;
+        console.log("Datos de usuario:", response.params);
+        checkUser(
+          email,
+          familyName,
+          givenName,
+          id,
+          name,
+          photo,
+          response.params.id_token
+        );
+      }, 100); // incluso 50ms puede bastar
+    }
+  }, [response]);
   return (
     <>
       <StatusBar style="light" backgroundColor="#000000" />
@@ -254,7 +290,11 @@ const Register: React.FC = () => {
                 paddingVertical: 20,
               }}
             >
-              <SignUpGoogle onPress={handleGoogleSignIn} />
+              <SignUpGoogle
+                onPress={() => {
+                  promptAsync();
+                }}
+              />
               <View
                 style={{
                   width: "100%",

@@ -10,6 +10,7 @@ import {
   ScrollView,
   TextInput,
   Platform,
+  Button,
   ActionSheetIOS,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
@@ -21,32 +22,35 @@ import {
   router,
   useLocalSearchParams,
 } from "expo-router";
-import url from "../../constants/url.json";
+import url from "@/constants/url.json";
 import { RootStackParamList } from "@/app/_layout";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import * as FileSystem from "expo-file-system";
 import Modal from "react-native-modal";
-import Panel from "../../components/panelPushUp";
-import CustomModal from "../../components/modalAlert";
-import EventListProfile from "../../components/eventListTopProfile";
+import Panel from "@/components/panelPushUp";
+import CustomModal from "@/components/modalAlert";
+import EventListProfile from "@/components/eventListTopProfile";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
-const { width } = Dimensions.get("window");
-
+const { width, height } = Dimensions.get("window");
+import { useProfilePhotoStore } from "@/app/utils/useStore";
 const proportionalFontSize = (size: number) => {
   const baseWidth = 375; // Ancho base (puedes ajustarlo según tus necesidades)
   return (size * width) / baseWidth;
 };
 
 const Profile: React.FC = () => {
-  const { username, photo } = useLocalSearchParams();
+  const profilePhoto = useProfilePhotoStore.getState().profilePhoto;
+  const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
+
   const [isModalVisible, setModalVisible] = useState(false);
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [descriptionProfile, setdescriptionProfile] = useState<string | null>(
     null
   );
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [followers, setFollowers] = useState<string | null>(null);
   const [following, setFollowing] = useState<string | null>(null);
   const [decodedToken, setDecodedToken] = useState<string | null>(null);
@@ -56,6 +60,7 @@ const Profile: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
+
   const showModalAlert = (message: string) => {
     setAlertText(message);
     setAlertVisible(true);
@@ -79,15 +84,17 @@ const Profile: React.FC = () => {
     setModalVisible(false);
   };
   const checkToken = async () => {
+    console.log("Verificando token...");
     try {
       const storedToken = await AsyncStorage.getItem("access_token");
-
+      console.log("Token almacenado:", storedToken);
       if (storedToken !== null) {
+        const decoded: any = jwtDecode(storedToken);
         setToken(storedToken);
-        setIsVisible(false);
-
-        const decodedToken = jwtDecode<DecodedToken>(storedToken);
-        decode();
+        setUsername(decoded.sub.username);
+        console.log("Decoded token:", decoded);
+        setPhoto(decoded.sub.profile_photo);
+        fetchUserData(decoded.sub.username, storedToken);
       } else {
         setToken(null);
         setIsVisible(true);
@@ -96,30 +103,14 @@ const Profile: React.FC = () => {
       console.error("Error al verificar el token", error);
     }
   };
-  useLayoutEffect(() => {
-    checkToken();
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-  useFocusEffect(
-    React.useCallback(() => {
-      checkToken();
-    }, [])
-  );
   const cleanData = async () => {
-    setAlertVisible(true);
-    try {
-      await GoogleSignin.signOut();
-      console.log("Credenciales de google eliminadas");
-    } catch (error) {
-      console.log("Error al eliminar las credenciales: ", error.message);
-    }
     try {
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("refresh_token");
       setdescriptionProfile(null);
-      setProfilePhoto(null);
+      setPhoto(null);
+      setUsername(null);
+      setProfilePhoto("");
       setFollowers(null);
       setFollowing(null);
       setDecodedToken(null);
@@ -136,7 +127,6 @@ const Profile: React.FC = () => {
 
   const fetchUserData = async (user: string, token: string) => {
     const finalUsername = user;
-
     try {
       const response = await fetch(
         `${url.url}/api/get_myuser_details?username=${encodeURIComponent(
@@ -152,52 +142,32 @@ const Profile: React.FC = () => {
       );
       if (response.ok) {
         const data = await response.json();
-
         setdescriptionProfile(data.description);
         setProfilePhoto(data.profile_photo);
         setFollowers(data.followersnum);
         setFollowing(data.followingnum);
       } else {
         const errorData = await response.json();
+        cleanData();
         console.log("Error data:", errorData);
         showModalAlert(
           "Tu sesion ha caducado por favor inicia sesion de nuevo"
         );
-        setTimeout(() => {
-          cleanData();
-        }, 3500);
       }
     } catch (error) {
       showModalAlert("Ha habido un error de conexion");
     }
   };
-  const decode = async () => {
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-
-      setToken(token);
-      if (token) {
-        try {
-          const decodedToken = jwtDecode<DecodedToken>(token);
-          setDecodedToken(decodedToken);
-
-          // setUsername(decodedToken.sub.user);
-          if (decodedToken.sub.user) {
-            await fetchUserData(decodedToken.sub.user, token);
-          }
-        } catch (decodingError) {
-          Alert.alert("Error", "No se pudo decodificar el token");
-          cleanData();
-        }
+  useFocusEffect(
+    React.useCallback(() => {
+      checkToken();
+      if (!token) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
       }
-    } catch (error) {
-      Alert.alert("Error", "No se pudo obtener el token");
-      cleanData();
-    }
-  };
-  useEffect(() => {
-    checkToken();
-  }, [navigation]);
+    }, [token])
+  );
 
   const pickImage = async () => {
     const { status: galleryStatus } =
@@ -298,6 +268,8 @@ const Profile: React.FC = () => {
       });
 
       if (response.status === 200) {
+        console.log("Imagen subida con éxito");
+        setPhoto(imageUri);
       } else {
         console.log("Error al subir la imagen");
       }
@@ -352,12 +324,30 @@ const Profile: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.superior}>
+        {token ? (
+          <Pressable
+            onPress={() => navigation.openDrawer()}
+            style={{
+              position: "absolute",
+              left: "2%",
+              height: 40,
+              width: 40,
+              top: "0%",
+            }}
+          >
+            <Image
+              source={require("@/assets/images/drawer2.png")}
+              style={{ resizeMode: "contain", width: 40, height: 40 }}
+            />
+          </Pressable>
+        ) : null}
+
         <Image
-          source={require("../../assets/images/logo.png")}
+          source={require("@/assets/images/logo.png")}
           style={styles.logo}
         />
         <View style={styles.cajauser}>
-          <Text style={styles.welcomeText}>{username ? username : "---"}</Text>
+          <Text style={styles.welcomeText}>{username ? username : ""}</Text>
         </View>
       </View>
       <View style={styles.middle}>
@@ -375,7 +365,7 @@ const Profile: React.FC = () => {
               ]}
             >
               <Image
-                source={require("../../assets/images/add.png")}
+                source={require("@/assets/images/add.png")}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -389,10 +379,10 @@ const Profile: React.FC = () => {
         ) : (
           <View style={styles.cajafoto}>
             <Image
-              source={require("../../assets/images/userShadow.png")}
+              source={require("@/assets/images/userShadow.png")}
               style={styles.profilePhoto}
             />
-            <Pressable
+            {/* <Pressable
               onPress={() => {
                 cleanData();
               }}
@@ -406,7 +396,7 @@ const Profile: React.FC = () => {
               ]}
             >
               <Image
-                source={require("../../assets/images/add.png")}
+                source={require("@/assets/images/add.png")}
                 style={{
                   width: "100%",
                   height: "100%",
@@ -415,7 +405,7 @@ const Profile: React.FC = () => {
                   bottom: "0%",
                 }}
               />
-            </Pressable>
+            </Pressable> */}
           </View>
         )}
         <View style={styles.cajainfo}>
@@ -428,7 +418,7 @@ const Profile: React.FC = () => {
                 {following !== null ? (
                   <Text style={styles.value}>{following}</Text>
                 ) : (
-                  <Text style={styles.value}>---</Text>
+                  <Text style={styles.value}></Text>
                 )}
               </View>
             </View>
@@ -440,12 +430,16 @@ const Profile: React.FC = () => {
                 {following !== null ? (
                   <Text style={styles.value}>{followers}</Text>
                 ) : (
-                  <Text style={styles.value}>---</Text>
+                  <Text style={styles.value}></Text>
                 )}
               </View>
             </View>
           </View>
-          {descriptionProfile ? (
+          {descriptionProfile === null ? (
+            <View style={styles.cajadescripcion}>
+              <Text style={styles.descripcion}></Text>
+            </View>
+          ) : (
             <View style={styles.cajadescripcion}>
               <Text style={styles.descripcion}>{descriptionProfile}</Text>
               <Pressable
@@ -458,23 +452,7 @@ const Profile: React.FC = () => {
                   styles.editar,
                 ]}
               >
-                <Image source={require("../../assets/images/editar.png")} />
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.cajadescripcion}>
-              <Text style={styles.descripcion}>---</Text>
-              <Pressable
-                onPress={token ? openModal : togglePanel}
-                style={({ pressed }) => [
-                  {
-                    transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                  styles.editar,
-                ]}
-              >
-                <Image source={require("../../assets/images/editar.png")} />
+                <Image source={require("@/assets/images/editar.png")} />
               </Pressable>
             </View>
           )}
@@ -484,13 +462,6 @@ const Profile: React.FC = () => {
         <View style={styles.cajaboton}>
           <Pressable onPress={cleanData} style={styles.button}>
             <Text style={styles.buttonText}>Cerrar sesion</Text>
-          </Pressable>
-          <Pressable onPress={deleteaccount} style={styles.button2}>
-            <Image
-              source={require("../../assets/images/trash.png")}
-              style={{ width: 25, height: 25 }}
-            />
-            <Text style={styles.buttonText}>Eliminar Cuenta</Text>
           </Pressable>
         </View>
       ) : (
@@ -503,12 +474,14 @@ const Profile: React.FC = () => {
         modalText={AlertText}
       />
       <View style={styles.cajainferior}>
-        <View style={styles.cajaquien}>
-          <Text style={styles.userinferior}>
-            {username ? username : "--- "}
-          </Text>
-          <Text style={styles.mensaje}>estara en estos eventos ...</Text>
-        </View>
+        {username ? (
+          <View style={styles.cajaquien}>
+            <Text style={styles.userinferior}>{username ? username : ""}</Text>
+            <Text style={styles.mensaje}>estara en estos eventos ...</Text>
+          </View>
+        ) : (
+          <></>
+        )}
       </View>
       <View style={styles.cajaeventos}>
         {/* {username ? (
@@ -528,7 +501,7 @@ const Profile: React.FC = () => {
               onChangeText={setnewDescription}
             />
             <Image
-              source={require("../../assets/images/editar.png")}
+              source={require("@/assets/images/editar.png")}
               style={styles.iconUser}
             />
           </View>
@@ -562,8 +535,9 @@ const styles = StyleSheet.create({
   superior: {
     position: "relative",
     top: "1%",
+    marginBottom: "5%",
     width: "100%",
-    height: "15%",
+    height: "13%",
     borderBottomWidth: 2,
     borderBottomColor: "#ffffff",
     justifyContent: "center",
@@ -685,12 +659,9 @@ const styles = StyleSheet.create({
     bottom: "10%",
   },
   button: {
-    margin: "5%",
-    right: "0%",
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    width: "40%",
+    width: "60%",
     height: "45%",
     backgroundColor: "rgba(255, 255, 255, 1)",
     borderRadius: 10,
@@ -711,16 +682,16 @@ const styles = StyleSheet.create({
   },
   cajaboton: {
     justifyContent: "center",
-    position: "absolute",
-    top: Dimensions.get("window").width > 375 ? "45%" : "40%",
+    alignItems: "center",
     width: "100%",
     height: "15%",
+    marginTop: "-2%",
   },
   cajainferior: {
     position: "absolute",
     width: "100%",
     height: "50%",
-    top: "50%",
+    top: height * 0.45,
   },
 
   userinferior: {

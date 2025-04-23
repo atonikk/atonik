@@ -21,11 +21,14 @@ import { jwtDecode } from "jwt-decode";
 import CustomModal from "../../../components/modalAlert";
 import Logo from "@/components/Logo";
 import SvgContainer from "@/components/SvgContainer";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
 const { width, height } = Dimensions.get("window");
 const buttonWidth = width * 0.5;
 const buttonHeight = height * 0.05;
 
 const Login: React.FC = () => {
+  const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
+  const profile_photo = useProfilePhotoStore.getState().profilePhoto;
   const navigation = useNavigation();
   const [usuario, setUsuario] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -73,8 +76,13 @@ const Login: React.FC = () => {
       });
 
       if (response && response.data) {
+        console.log("Respuesta del servidor:", response.data);
+        console.log("Token:", response.data.access_token);
         const token = response.data.access_token;
-        const decodedToken = jwtDecode<DecodedToken>(token);
+        const decoded: any = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        setProfilePhoto(decoded.sub.profile_photo);
+        console.log("Foto de perfil:", decoded.sub.profile_photo);
         await AsyncStorage.setItem("access_token", response.data.access_token);
         setTimeout(() => {
           router.push({

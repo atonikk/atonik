@@ -82,28 +82,14 @@ export default function Tab() {
   };
 
   const handlePress2 = async () => {
-
-    if (!token) {
-      setIsVisible(true);
-    } else {
-      try {
-        const response = await axios.post(
-          `${url.url}/api/allow_organicer`,
-          { user_to_allow: decodedToken.sub.user },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          router.push({ pathname: "/screens/Publish/Nombre" });
-        }
-      } finally {
-        setPressed2(false);
-      }
+    try {
+      await Linking.openURL(
+        "https://api.whatsapp.com/send?phone=573208435424&text=Hola%20estoy%20interesado%20en%20ser%20organizador%20de%20eventos%20de%20atonik!!"
+      );
+    } catch (error) {
+      console.error("Error opening URL:", error);
+    } finally {
+      setPressed2(false);
     }
   };
 
@@ -324,7 +310,7 @@ const styles = StyleSheet.create({
   },
   quieroserbutton2: {
     position: "absolute",
-    top:  Dimensions.get("window").width > 375 ? "70%" : "60%",
+    top: Dimensions.get("window").width > 375 ? "70%" : "60%",
     justifyContent: "center",
     alignItems: "center",
     width: "60%",

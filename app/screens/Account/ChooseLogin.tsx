@@ -22,14 +22,9 @@ import GoogleLoginButton from "@/components/GoogleLoginButton";
 import { useFonts } from "expo-font";
 import axios from "axios";
 import url from "@/constants/url.json";
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  isSuccessResponse,
-  isErrorWithCode,
-  statusCodes,
-} from "@react-native-google-signin/google-signin";
+import ModalRounded from "@/components/ModalRounded";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Google from "expo-auth-session/providers/google";
 
 const { width, height } = Dimensions.get("window");
 
@@ -40,7 +35,10 @@ const ChooseLogin: React.FC = () => {
   });
   const [message, setMessage] = useState("");
   const [isVisible, setIsVisible] = useState(false);
-
+  const [isModalRoundedVisible, setModalRoundedVisible] =
+    useState<boolean>(false);
+  const [modalRoundedText, setModalRoundedText] = useState<string>("");
+  const [modalTextButton, setModalTextButton] = useState<string>("");
   const navigation = useNavigation();
   const [Number, setNumber] = useState<string>("");
   const [Nombre, setNombre] = useState<string>("");
@@ -50,106 +48,92 @@ const ChooseLogin: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId:
-        "667525490941-h60k47ugmhglbjmb9hkp17b7uiara5jg.apps.googleusercontent.com", // Replace with the correct web client ID from Google API Console
-      offlineAccess: true, // Para obtener el refresh token
-    });
-  }, []);
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+    androidClientId:
+      "667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com",
+  });
   useEffect(() => {
     console.log("Comprobando si ya hay sesión iniciada...");
     const checkIfSignedIn = async () => {
-      const isSignedIn = (await GoogleSignin.getCurrentUser()) !== null;
-      if (isSignedIn) {
-        const userInfo = await GoogleSignin.getCurrentUser();
-        console.log("Ya hay sesión iniciada:", userInfo?.user.photo);
-        await AsyncStorage.setItem("userPhoto", userInfo?.user.photo || "");
+      const accessToken = await AsyncStorage.getItem("access_token");
+      if (accessToken) {
+        console.log("Ya hay sesión iniciada");
         router.push({
-          pathname: "/(tabs)/profile",
+          pathname: "/(tabs)/home",
         });
       } else {
-        console.log("No hay sesión iniciada.");
+        console.log("No hay sesión iniciada");
       }
     };
 
     checkIfSignedIn();
   }, []);
-
-  const existUser = async (
+  const checkUser = async (
     email: string,
     familyName: string,
     givenName: string,
+    id: string,
     name: string,
     photo: string,
-    id: string
-  ) => {};
-
-  const handleGoogleSignIn = async () => {
+    idToken: string
+  ) => {
     try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
-      if (isSuccessResponse(response)) {
-        const { idToken, user } = response.data;
-        console.log("idToken: ", idToken);
-        console.log("user: ", user);
-        const { email, familyName, givenName, id, name, photo } = user;
-        console.log(id);
-        const responseapi = await axios.post(`${url.url}/validate_token`, {
-          token: id,
+      const response = await axios.post(`${url.url}/validate_token`, {
+        token: idToken,
+      });
+      if (response.status === 200) {
+        console.log("Usuario encontrado en la base de datos");
+        await AsyncStorage.setItem("access_token", response.data.access_token);
+        router.replace({
+          pathname: "/(tabs)/home",
         });
-        if (responseapi.status === 200) {
-          console.log("Usuario ya existe");
-          await AsyncStorage.setItem(
-            "access_token",
-            responseapi.data.access_token
-          );
-        } else if (responseapi.status === 404) {
-          console.log("Usuario no existe");
-          router.push({
-            pathname: "/screens/Account/UserGoogle",
-            params: {
-              email,
-              familyName,
-              givenName,
-              id,
-              name,
-              photo,
-            },
-          });
-        } else {
-          throw new Error("Error checking user existence");
-        }
-      } else {
-        console.log("El usuario cancelo el inicio de sesion");
       }
-    } catch (error) {
-      if (isErrorWithCode(error)) {
-        switch (error.code) {
-          case statusCodes.IN_PROGRESS:
-            setMessage("El inicio de sesión ya está en progreso");
-            console.log("El inicio de sesión ya está en progreso");
-            break;
-          case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-            setMessage("Los servicios de Google Play no están disponibles");
-            console.log("Los servicios de Google Play no están disponibles");
-            break;
-          case statusCodes.SIGN_IN_CANCELLED:
-            setMessage("El usuario canceló el inicio de sesión");
-            console.log("El usuario canceló el inicio de sesión");
-            break;
-          case statusCodes.SIGN_IN_REQUIRED:
-            setMessage("Se requiere inicio de sesión");
-            console.log("Se requiere inicio de sesión");
-            break;
-          default:
-            console.log("Error desconocido: ", error.message);
-        }
+      if (response.status === 201) {
+        console.log("Este usuario no ha sido registrado");
+        setModalRoundedText(
+          "Este usuario no ha sido registrado, por favor registrate"
+        );
+        setModalTextButton("Ir a registro");
+        setModalRoundedVisible(true);
+      }
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        console.log("Usuario no encontrado, redirigiendo a registro");
+        const { google_id, name, email, profile_photo } = error.response.data;
       } else {
-        console.log("Error: ", error.message);
+        console.log("Error validando token:", error.message);
       }
     }
   };
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      console.log("Usuario loggeado");
+      setTimeout(() => {
+        const decodedToken = JSON.parse(
+          atob(response.params.id_token.split(".")[1])
+        );
+        const {
+          email,
+          family_name: familyName,
+          given_name: givenName,
+          sub: id,
+          name,
+          picture: photo,
+        } = decodedToken;
+        console.log("Datos de usuario:", response.params);
+        checkUser(
+          email,
+          familyName,
+          givenName,
+          id,
+          name,
+          photo,
+          response.params.id_token
+        );
+      }, 100); // incluso 50ms puede bastar
+    }
+  }, [response]);
 
   const [isPasswordConfirmVisible, setIsPasswordConfirmVisible] =
     useState<boolean>(false);
@@ -210,7 +194,7 @@ const ChooseLogin: React.FC = () => {
                 paddingVertical: 20,
               }}
             >
-              <GoogleLoginButton onPress={handleGoogleSignIn} />
+              <GoogleLoginButton onPress={() => promptAsync()} />
               <View
                 style={{
                   width: "100%",
@@ -289,6 +273,14 @@ const ChooseLogin: React.FC = () => {
               </TouchableOpacity>
             </View>
           </SvgContainer>
+          <ModalRounded
+            text={modalRoundedText}
+            textbutton={modalTextButton}
+            isVisible={isModalRoundedVisible}
+            onClose={() => {
+              setModalRoundedVisible(false);
+            }}
+          />
         </View>
       </ImageBackground>
     </>

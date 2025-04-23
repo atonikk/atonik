@@ -46,7 +46,7 @@ export default function Tab() {
   interface User {
     _id: string;
     profile_photo: string;
-    usuario: string;
+    username: string;
     followingnum: number;
     followersnum: number;
     description: string;
@@ -66,11 +66,11 @@ export default function Tab() {
     longitude: string;
     images: string[];
   }
-
   const searchUsers = async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      console.log("Haciendo la busqueda");
+      console.log("Token:", token);
+      console.log("Haciendo la búsqueda");
       if (token === null) {
         togglePanel();
       } else {
@@ -83,15 +83,19 @@ export default function Tab() {
             },
           }
         );
-        console.log(response.data);
-        setUsers(response.data);
+        if (response.data.length === 0) {
+          setError("No se encontraron usuarios con el criterio de búsqueda.");
+        } else {
+          setUsers(response.data);
+        }
       }
     } catch (error) {
-      setError("No se pudo realizar la búsqueda.");
+      console.log("Estre es el error",error);
     } finally {
       setLoading(false);
     }
   };
+
   const Separator = () => (
     <View style={{ height: 1, backgroundColor: "#cccccc" }} />
   );
@@ -114,7 +118,7 @@ export default function Tab() {
       }
       setEvents(response.data);
     } catch (error) {
-      setError("No se pudo realizar la búsqueda.");
+      setError("No se.");
     } finally {
       setLoading(false);
     }
@@ -129,7 +133,7 @@ export default function Tab() {
           params: {
             userId: item._id,
             getprofile_photo: item.profile_photo,
-            getusuario: item.usuario,
+            getusuario: item.username,
             getfollowingnum: item.followingnum,
             getfollowersnum: item.followersnum,
             getdescription: item.description,
@@ -145,7 +149,7 @@ export default function Tab() {
       ) : (
         <Image source={{ uri: item.profile_photo }} style={styles.userImage} />
       )}
-      <Text style={styles.userName}>{item.usuario}</Text>
+      <Text style={styles.userName}>{item.username}</Text>
     </Pressable>
   );
 

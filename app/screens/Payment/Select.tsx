@@ -1,260 +1,294 @@
-import React, { useState, useCallback, useLayoutEffect, useRef } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   Image,
-  Pressable,
-  Animated,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import {
-  useNavigation,
-  router,
-  useFocusEffect,
-  useLocalSearchParams,
-} from "expo-router";
-import { useRoute } from "@react-navigation/native";
-import { useEffect } from "react";
-import { useFonts } from "expo-font";
-import buttonWompi from "../../screens/Payment/ButtonWompi";
-const Select = () => {
-  const route = useRoute();
-  const { id } = route.params as { id: string };
-  const [fontsLoaded] = useFonts({
-    "Inter-Regular": require("../../../assets/fonts/Inter-Regular.ttf"),
-    "Inter-Bold": require("../../../assets/fonts/InterDisplay-Bold.ttf"),
-    "Inter-Light": require("../../../assets/fonts/Inter-Light.ttf"),
-    "Inter-Thin": require("../../../assets/fonts/Inter-Thin.ttf"),
-    "Inter-ExtraLight": require("../../../assets/fonts/InterDisplay-ExtraLight.ttf"),
-    "Roboto-Light": require("../../../assets/fonts/Roboto-Light.ttf"),
-    "Roboto-Black": require("../../../assets/fonts/Roboto-Black.ttf"),
-  });
+import { useWindowDimensions } from "react-native";
+import Constants from "expo-constants";
+const statusBarHeight = Constants.statusBarHeight;
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useFocusEffect } from "@react-navigation/native";
+import ProgressStepsBar from "@/components/progressIndicators/progressStepsBar";
+import { useRouter } from "expo-router";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useColorScheme } from "react-native";
 
+export default function MetodoPago() {
+  const [selected, setSelected] = useState<"card" | "nequi">("card");
+  const [isReady, setIsReady] = useState(false);
+  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  const { width, height } = useWindowDimensions();
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
-  
-  const handleNequi = () => {
-    router.push({
-      pathname: "/screens/Payment/NequiForm",
-      params: {
-        id: String(id),
-      },
-    });
-  };
-  const PaymentButton = () => {
-    router.push({
-      pathname: "/screens/Payment/ButtonWompi",
-      params: {
-        id: String(id),
-      },
-    });
-  };
-  const navigation = useNavigation();
-  const scaleValue = new Animated.Value(1);
-  const scaleValue2 = new Animated.Value(1);
-  const handlePressIn = () => {
-    Animated.spring(scaleValue, {
-      toValue: 0.95, // reducir el tamaño al presionar
-      useNativeDriver: true,
-    }).start();
+  const logoSource =
+    colorScheme === "dark"
+      ? require("../../../assets/images/nequiLogo.png")
+      : require("../../../assets/images/nequiClaro.png");
+
+  const handleNext = () => {
+    if (selected === "card") {
+      router.push("screens/Payment/Card");
+    } else {
+      router.push("/screens/Payment/NequiForm");
+    }
   };
 
-  const handlePressOut = () => {
-    Animated.spring(scaleValue, {
-      toValue: 1, // volver al tamaño original al soltar
-      useNativeDriver: true,
-    }).start();
-  };
-  const handlePressIn2 = () => {
-    Animated.spring(scaleValue2, {
-      toValue: 0.95, // reducir el tamaño al presionar
-      useNativeDriver: true,
-    }).start();
-  };
-  const handlePressOut2 = () => {
-    Animated.spring(scaleValue2, {
-      toValue: 1, // volver al tamaño original al soltar
-      useNativeDriver: true,
-    }).start();
-  };
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  const styles = getStyles(theme, width, height, statusBarHeight);
 
   return (
-    <View style={styles.bigcontainer}>
-      <View style={styles.divlogo}>
-        <Image
-          style={styles.logo}
-          source={require("../../../assets/images/logo.png")}
-        />
-      </View>
-      <View style={styles.divtext}>
-        <Text style={styles.whitextbig}>Metodos de pago</Text>
-        <Text style={styles.whitext}>Elige tu metodo de pago favorito</Text>
-      </View>
-      <View style={styles.divopciones}>
-        <Pressable
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          onPress={handleNequi}
-          style={styles.divopcion}
-        >
-          <Animated.View
-            style={[styles.divanimated, { transform: [{ scale: scaleValue }] }]}
-          >
-            <View style={styles.divimgs}>
-              <Image source={require("../../../assets/images/nequi.png")} />
-            </View>
-            <View style={styles.divtextoopcion}>
-              <Text style={styles.wompitexto}>Nequi</Text>
-            </View>
-          </Animated.View>
-        </Pressable>
+    <SafeAreaView
+      style={{
+        height: height,
+        paddingTop: insets.top,
+        backgroundColor: theme.colors.background,
+      }}
+    >
+      <ScrollView style={{ flex: 1, paddingHorizontal: "4%" }}>
+        <Text style={styles.title}>Añade un método de pago</Text>
 
-{/*         <Pressable
-          onPressIn={handlePressIn2}
-          onPressOut={handlePressOut2}
-          onPress={PaymentButton}
-          style={styles.divopcion2}
-        >
-          <Animated.View
-            style={[
-              styles.divanimated,
-              { transform: [{ scale: scaleValue2 }] },
-            ]}
+        <View style={styles.optionContainer}>
+          {/* Opciones */}
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setSelected("card")}
           >
-            <View style={styles.divimgs}>
-              <Image source={require("../../../assets/images/wompi.png")} />
-            </View>
-            <View style={styles.divtextoopcion}>
-              <Text style={styles.wompitexto}>Otros medios de pago</Text>
+            <View style={styles.optionLeft}>
+              <Image
+                tintColor="#fff"
+                source={require("../../../assets/images/cardIcon.png")}
+                style={styles.cardIcon}
+              />
+              <View style={{ marginLeft: 20 }}>
+                <Text style={styles.optionTitle}>
+                  Tarjeta de crédito o débito
+                </Text>
+                <View style={styles.cardLogos}>
+                  <Image
+                    source={require("../../../assets/images/visaLogo.png")}
+                    style={styles.visaLogo}
+                  />
+                  <Image
+                    source={require("../../../assets/images/mastercardLogo.png")}
+                    style={styles.mastercardLogo}
+                  />
+                </View>
+              </View>
             </View>
             <View
-              id="wompi-button-container"
-              style={styles.wompiButtonContainer}
-            ></View>
-          </Animated.View>
-        </Pressable> */}
+              style={
+                selected === "card"
+                  ? styles.radioSelected
+                  : styles.radioUnselected
+              }
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.optionFinal}
+            onPress={() => setSelected("nequi")}
+          >
+            <View style={styles.optionLeft}>
+              <Image source={logoSource} style={styles.nequiLogo} />
+              <Text style={styles.optionTitle}>Pago con Nequi</Text>
+            </View>
+            <View
+              style={
+                selected === "nequi"
+                  ? styles.radioSelected
+                  : styles.radioUnselected
+              }
+            />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      <View style={[styles.card1, { backgroundColor: theme.colors.card }]}>
+        <View style={styles.stepContainer}>
+          <ProgressStepsBar totalSteps={3} currentStep={2} />
+        </View>
+
+        <View style={styles.totalRow}>
+          <Text style={[styles.totalLabel, { color: theme.colors.text }]}>
+            Total
+          </Text>
+          <Text style={[styles.totalValue, { color: theme.colors.text }]}>
+            $ 10.000
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => {
+            handleNext();
+          }}
+          style={[styles.button, { backgroundColor: theme.colors.primary }]}
+        >
+          <Text style={[styles.buttonText, { color: "#ffff" }]}>
+            Continuar compra
+          </Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  bigcontainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#131313",
-  },
-  divlogo: {
-    position: "absolute",
-    width: "20%",
-    height: "10%",
-    top: "5%",
-  },
+const getStyles = (theme, width, height, statusBarHeight) =>
+  StyleSheet.create({
+    container: {
+      backgroundColor: theme.colors.background,
+      flex: 1,
+      marginTop: 0,
+    },
 
-  webview: { height: 200, width: "100%" },
+    title: {
+      fontSize: 27,
+      color: theme.colors.text,
+      marginBottom: 30,
+      fontWeight: "200",
+      marginVertical: 20,
+      marginLeft: 5,
+    },
+    optionContainer: {
+      backgroundColor: theme.colors.card,
+      borderRadius: 10,
+      padding: 25,
+      justifyContent: "center",
+      elevation: 5,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+    },
+    option: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingBottom: 25,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.separator,
+    },
+    optionFinal: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingTop: 25,
+    },
+    optionLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    optionTitle: {
+      color: theme.colors.text,
+      fontSize: 16,
+      fontWeight: "100",
+    },
+    cardIcon: {
+      width: 26,
+      height: 23,
+      marginLeft: 9,
+      tintColor: theme.colors.text,
+    },
+    cardLogos: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 5,
+    },
+    visaLogo: {
+      width: 30,
+      height: 10,
+      marginRight: 5,
+      marginLeft: 2,
+      tintColor: theme.colors.text,
+    },
+    mastercardLogo: {
+      width: 20,
+      height: 10,
+    },
+    nequiLogo: {
+      width: 50,
+      height: 17,
+      marginRight: 8,
+    },
+    radioUnselected: {
+      height: 20,
+      width: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.colors.text,
+      backgroundColor: "transparent",
+    },
+    radioSelected: {
+      height: 20,
+      width: 20,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderColor: theme.colors.secondary,
+      backgroundColor: theme.colors.secondary,
+    },
+    button: {
+      height: 60,
+      justifyContent: "center",
+      alignItems: "center",
+      borderRadius: 12,
+      width: "100%",
+    },
+    buttonText: {
+      fontSize: 17,
+      fontWeight: "600",
+    },
 
-  logo: {
-    resizeMode: "contain",
-    width: "100%",
-    height: "100%",
-  },
-  divtext: {
-    position: "absolute",
-    top: "20%",
-    width: "100%",
-  },
-  whitextbig: {
-    fontFamily: "Inter-Regular",
-    fontWeight: "bold",
-    fontSize: 40,
-    color: "white",
-    marginBottom: "2%",
-  },
-  whitext: {
-    fontFamily: "Inter-Light",
-    fontSize: 18,
-    color: "#FFFFFF",
-  },
-  divopciones: {
-    flexDirection: "column",
-    position: "absolute",
-    top: "35%",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    height: "70%",
-  },
-  divnequi: {
-    flexDirection: "column",
-    backgroundColor: "#3C3C3C",
-    justifyContent: "center",
-    alignItems: "center",
-    top: "0%",
-    width: "75%",
-    height: "40%",
-    position: "absolute",
-    borderRadius: 20,
-  },
-  divopcion: {
-    position: "absolute",
-    top: "5%",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-    flexDirection: "row",
-    width: "75%",
-    height: "35%",
-    backgroundColor: "#232323",
-  },
-  divanimated: {
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-    flexDirection: "row",
-    width: "100%",
-    height: "100%",
-  },
-  divopcion2: {
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 20,
-    flexDirection: "row",
-    width: "75%",
-    height: "35%",
-    backgroundColor: "#232323",
-    marginTop: "40%",
-  },
-
-  wompitexto: {
-    padding: "5%",
-    fontFamily: "Inter-Regular",
-    fontSize: 18,
-    color: "white",
-  },
-  divimgs: {
-    position: "absolute",
-    top: "0%",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    height: "70%",
-  },
-  divtextoopcion: {
-    borderColor: "white",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    height: "25%",
-    borderTopWidth: 0.25,
-    position: "absolute",
-    bottom: "5%",
-  },
-  wompiButtonContainer: { marginTop: 10 },
-});
-
-export default Select;
+    card1: {
+      padding: 15,
+      borderRadius: 14,
+      elevation: 7,
+      shadowOffset: { width: 4, height: -4 },
+      shadowColor: "#616161",
+      shadowOpacity: 0.3,
+      shadowRadius: 5,
+      width: "100%",
+      marginVertical: 0,
+      marginBottom: height * 0.07,
+    },
+    shippingRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: 10,
+    },
+    fee: {
+      fontSize: 14,
+      fontWeight: "500",
+    },
+    input: {
+      height: 48,
+      borderWidth: 1,
+      borderRadius: 10,
+      paddingHorizontal: 12,
+      marginVertical: 15,
+      zIndex: -1,
+    },
+    totalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginVertical: 20,
+    },
+    totalLabel: {
+      fontSize: 20,
+      fontWeight: "500",
+    },
+    totalValue: {
+      fontSize: 20,
+      fontWeight: "700",
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: "400",
+      zIndex: -1,
+    },
+  });

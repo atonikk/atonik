@@ -1,22 +1,30 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { View, StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context"; // ✅ Importado
+import { useAppTheme } from "@/constants/theme/useTheme"
+import { useWindowDimensions } from "react-native";
+import { StyleSheet } from "react-native";
+import React, { useState, useCallback } from 'react';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
 };
-
+import CustomHeader from "@/components/headers/customHeader"; 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const { height, width } = useWindowDimensions();
   return (
-    <View style={styles.container}>
+    <SafeAreaProvider> {/* ✅ Envolvemos toda la app */}
       <RootLayoutNav />
-    </View>
+    </SafeAreaProvider>
   );
 }
 
 function RootLayoutNav() {
+  const [isAppReady, setIsAppReady] = useState(false);
+  const theme = useAppTheme();
+ 
   return (
     <Stack
       screenOptions={{
@@ -30,10 +38,48 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="screens/Events/SeatMap" options={{ headerShown: false }} />
       <Stack.Screen
-        name="index"
+        name="screens/Payment/Select"
         options={{
-          headerShown: false,
+          header: () => <CustomHeader title="Select Payment" />,  // Usando el header reutilizable
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.text,  // Cambiar el color de la flecha
+        }}
+      />
+      <Stack.Screen
+        name="screens/Payment/Card"
+        options={{
+          header: () => <CustomHeader title="Card Details" />,  // Usando el header reutilizable
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.text,  // Cambiar el color de la flecha
+        }}
+      />
+            <Stack.Screen
+        name="screens/Payment/Resume"
+        options={{
+          header: () => <CustomHeader title="Card Details" />,  // Usando el header reutilizable
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.text,  // Cambiar el color de la flecha
+        }}
+      />
+            <Stack.Screen
+        name="screens/Payment/CheckCard"
+        options={{
+          headerShown: true,
+          title: "",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: theme.colors.text,
         }}
       />
       <Stack.Screen
@@ -68,6 +114,12 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="screens/Account/Password"
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="screens/Account/Register"
         options={{
           headerShown: false,
         }}

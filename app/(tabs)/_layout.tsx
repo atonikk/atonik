@@ -11,7 +11,9 @@ import Colors from "@/constants/Colors";
 import { jwtDecode } from "jwt-decode";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import usershadow from "../../assets/images/userShadow.png";
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View } from "react-native";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>["name"];
   color: string;
@@ -20,32 +22,24 @@ function TabBarIcon(props: {
 }
 
 export default function TabLayout() {
-  const [profile_photo, setProfilePhoto] = useState<string>("");
-  const [token, setToken] = useState<string>("");
-  useEffect(() => {
-    SplashScreen.hideAsync();
-    const fetchProfilePhoto = async () => {
-      try {
-        const token = await AsyncStorage.getItem("access_token");
-        if (token) {
-          setToken(token);
-          const decoded: any = jwtDecode(token);
-          setProfilePhoto(decoded.sub.profile_photo);
-        }
-      } catch (error) {
-        console.error("Error fetching profile photo:", error);
-      }
-    };
-    fetchProfilePhoto();
-  }, []);
+  const profile_photo = useProfilePhotoStore((state) => state.profilePhoto);
+
+
   return (
+    <View style={{ flex: 1 }}>
     <Tabs
       screenOptions={{
         tabBarStyle: {
           paddingBottom: 7,
           paddingTop: 10,
-          backgroundColor: "#010b1c",
+          backgroundColor: '#010B1CE6',         
+          borderWidth:0,
           height: 70,
+          position: 'absolute',
+          borderTopWidth: 0, // Elimina la línea superior
+          elevation: 0,      // Elimina la sombra en Android
+          shadowOpacity: 0,  // Elimina la sombra en iOS
+          fontSize: 12,
         },
         headerShown: false,
         tabBarActiveTintColor: "#c494ff",
@@ -102,17 +96,19 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ size }) => (
-            <Image
-              source={profile_photo ? { uri: profile_photo } : usershadow}
-              style={{ width: size, height: size, borderRadius: size / 2 }}
-            />
-          ),
-        }}
+      name="Profile"
+      options={{
+        title: "Profile",
+        headerShown: false, // 👈 importante ocultar el header del tab para el drawer
+        tabBarIcon: ({ size }) => (
+        <Image
+          source={profile_photo ? { uri: profile_photo } : usershadow}
+          style={{ width: size, height: size, borderRadius: size / 2 }}
+        />
+        ),
+      }}
       />
     </Tabs>
+    </View>
   );
 }

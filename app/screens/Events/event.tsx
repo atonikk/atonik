@@ -65,7 +65,7 @@ export default function Tab() {
     setIsVisible(false);
   };
   const goforpay = (eventId: any) => {
-    navigation.navigate("screens/Events/CodeOption", { id: event._id });
+    navigation.navigate("screens/Events/CodeOption");
   };
 
   const handlePress = () => {

@@ -11,7 +11,6 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import SvgNequi from "../../../assets/svgs/SvgNequi.svg";
 import { useLayoutEffect } from "react";
 import { useNavigation, router, useLocalSearchParams } from "expo-router";
 import axios from "axios";
@@ -20,7 +19,7 @@ import { Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
-const NequiForm: React.FC = () => {
+const NequiForm = () => {
   const [messageid, setMessageid] = React.useState("");
   const [clientid, setclientid] = React.useState("");
   const [transactionid, setTransactionid] = React.useState("");
@@ -38,11 +37,10 @@ const NequiForm: React.FC = () => {
   };
   const makePayment = async () => {
     try {
-
       const response = await axios.post(
         `${url.url}/api/make_payment`,
         {
-          event_id: id,
+          event_id: "67ddad4ed0aeed9fcfc99127",
           full_name: name,
           phone_number: number,
         },
@@ -57,7 +55,7 @@ const NequiForm: React.FC = () => {
       setMessageid(response.data.messageid);
       setclientid(response.data.clientid);
       setTransactionid(response.data.transactionid);
- 
+
       if (response.status === 200) {
         router.push({
           pathname: "/screens/Payment/CheckNequi",
@@ -111,7 +109,6 @@ const NequiForm: React.FC = () => {
         </View>
 
         <View style={styles.svgcontainer}>
-          <SvgNequi style={{ position: "absolute", top: "5%" }} />
           <Image
             source={require("../../../assets/images/NequiPng.png")}
             style={{ position: "absolute", top: "5%", resizeMode: "contain" }}

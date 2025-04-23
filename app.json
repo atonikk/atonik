@@ -9,13 +9,13 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "@/assets/images/pngVacio.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#3c32a8"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.atonik.atoniksignup"
+      "bundleIdentifier": "com.atonik.atonik"
     },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
@@ -42,7 +42,8 @@
     },
     "extra": {
       "router": {
-        "origin": false
+        "origin": false,
+        "expoClientId": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com"
       },
       "eas": {
         "projectId": "0554bf4e-8609-42b6-ab59-3887d519ea10"

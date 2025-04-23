@@ -48,7 +48,7 @@ export default function Login() {
         if (descriptionStatus) {
             navigation.navigate('screens/Events/Code',{ id: id});
         } else {
-        navigation.navigate('screens/Payment/Select',{ id: id});
+        navigation.navigate('screens/Payment/Resume',{ id: id});
         }
     };
 
