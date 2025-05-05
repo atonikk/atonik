@@ -21,8 +21,14 @@ import { Platform } from "react-native";
 import Logo from "@/components/Logo";
 import SvgContainer from "@/components/SvgContainer";
 import { useFonts } from "expo-font";
+import Background from "@/components/Background";
 import ModalRounded from "@/components/ModalRounded";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useColorScheme } from "react-native";
+import BotonRegister from "@/components/botonRegister";
 const Edad: React.FC = () => {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
     "Roboto-ExtraLight.ttf": require("@/assets/fonts/Roboto-ExtraLight.ttf"),
@@ -129,10 +135,7 @@ const Edad: React.FC = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/backgroundLogin.png")}
-      style={styles.background}
-    >
+    <Background>
       <View style={styles.overlay}>
         <Logo existsDerechos={false} />
         <SvgContainer>
@@ -193,7 +196,12 @@ const Edad: React.FC = () => {
           <View style={styles.cajainferior}>
             <View style={styles.cajacontent}>
               <View style={styles.caja}>
-                <View style={styles.cajadato}>
+                <View
+                  style={[
+                    styles.cajadato,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                >
                   <Text style={styles.dato}>{edad ? edad.anios : "-"}</Text>
                 </View>
                 <View style={styles.cajatipodato}>
@@ -201,7 +209,12 @@ const Edad: React.FC = () => {
                 </View>
               </View>
               <View style={styles.caja}>
-                <View style={styles.cajadato}>
+                <View
+                  style={[
+                    styles.cajadato,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                >
                   <Text style={styles.dato}>{edad ? edad.meses : "-"}</Text>
                 </View>
                 <View style={styles.cajatipodato}>
@@ -209,7 +222,12 @@ const Edad: React.FC = () => {
                 </View>
               </View>
               <View style={styles.caja}>
-                <View style={styles.cajadato}>
+                <View
+                  style={[
+                    styles.cajadato,
+                    { backgroundColor: theme.colors.primary },
+                  ]}
+                >
                   <Text style={styles.dato}>{edad ? edad.dias : "-"}</Text>
                 </View>
                 <View style={styles.cajatipodato}>
@@ -218,9 +236,7 @@ const Edad: React.FC = () => {
               </View>
             </View>
           </View>
-          <TouchableOpacity style={styles.button} onPress={handleContinuar}>
-            <Text style={styles.buttonText}>Continuar</Text>
-          </TouchableOpacity>
+          <BotonRegister textboton="Continuar" onPress={handleContinuar} />
         </SvgContainer>
         <ModalRounded
           text={modalText}
@@ -231,7 +247,7 @@ const Edad: React.FC = () => {
           }}
         />
       </View>
-    </ImageBackground>
+    </Background>
   );
 };
 const styles = StyleSheet.create({
@@ -313,18 +329,14 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   cajabienvenida: {
-    width: 320,
-    height: 70,
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    top: "-3%",
   },
   bienvenida: {
     color: "white",
     fontFamily: "Inter-ExtraLightItalic",
     fontSize: 24,
-    marginTop: "9%",
+    marginTop: "5%",
     textAlign: "center",
     width: "100%",
   },
@@ -366,9 +378,9 @@ const styles = StyleSheet.create({
   },
   caja: {
     alignItems: "center",
+    marginBottom: "5%",
   },
   cajadato: {
-    backgroundColor: "rgba(69, 28, 102, 0.61)",
     borderRadius: 8,
     width: 60,
     height: 60,

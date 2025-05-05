@@ -15,13 +15,59 @@ import Svg, { Path } from "react-native-svg";
 import { useNavigation, router, useLocalSearchParams } from "expo-router";
 import url from "../../../constants/url.json";
 import CustomModal from "@/components/modalAlert";
+import Background from "@/components/Background";
+import Logo from "@/components/Logo";
+import SvgContainer from "@/components/SvgContainer";
+import BotonRegister from "@/components/botonRegister";
+import { useFonts } from "expo-font";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import ModalRounded from "@/components/ModalRounded";
+const { height } = Dimensions.get("window");
 const ChangePassword: React.FC = () => {
+  const [modalRoundedText, setModalRoundedText] = useState("");
+  const [modalTextButton, setModalTextButton] = useState("Entendido");
+  const theme = useAppTheme();
+  const [fontsLoaded] = useFonts({
+    "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
+    "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
+  });
   const { phoneNumber } = useLocalSearchParams();
   const [password, setPassword] = useState<string>("");
+  const [isModalRoundedVisible, setModalRoundedVisible] =
+    useState<boolean>(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
+  const isPasswordSecure = (password: string) => {
+    const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(password);
+  };
+  const handleSubmit = () => {
+    if (!isPasswordSecure(password)) {
+      setModalRoundedText(
+        "La contraseña debe tener 8 caracteres, una letra mayúscula, un número y un carácter especial"
+      );
+      setModalTextButton("Entendido");
+      setModalRoundedVisible(true);
+    }
+
+    if (password !== confirmPassword) {
+      setModalRoundedText(
+        "Las contraseñas no coinciden. Por favor, inténtalo de nuevo."
+      );
+      setModalTextButton("Entendido");
+      setModalRoundedVisible(true);
+    }
+    if (password.length < 8) {
+      setModalRoundedText("La contraseña debe tener al menos 8 caracteres.");
+      setModalTextButton("Entendido");
+      setModalRoundedVisible(true);
+    }
+    if (isPasswordSecure(password) && password === confirmPassword) {
+      handleUpdatePassword();
+    }
+  };
   const showModalAlert = (message: string) => {
     setAlertText(message);
     setAlertVisible(true);
@@ -46,144 +92,160 @@ const ChangePassword: React.FC = () => {
   };
 
   const handleUpdatePassword = async () => {
-    if (!password || !confirmPassword) {
-      showModalAlert("Las contrasenas no coinciden");
-    } else {
-        try {
-          const response = await fetch(`${url.url}/api/forgot_password`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              phone : phoneNumber,
-              password: password,
-            }),
-          });
-          if (response.status === 200) {
-            showModalAlert("Se cambio la contraseña correctamente");
-            router.push("/screens/Account/Login");
-          }
-        } catch (error) {
-            console.error(error);
-            showModalAlert("Ha habido un error y no se ha cambiado la contraseña");
-          }
+    try {
+      const response = await fetch(`${url.url}/api/forgot_password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: phoneNumber,
+          password: password,
+        }),
+      });
+      if (response.status === 200) {
+        setModalRoundedText(
+          "La contraseña se ha actualizado correctamente. Por favor, inicia sesión."
+        );
+        setModalTextButton("Entendido");
+        setModalRoundedVisible(true);
+        setTimeout(() => {
+          router.push("/screens/Account/Login");
+        }, 2000);
+      }
+    } catch (error) {
+      console.error(error);
+      showModalAlert("Ha habido un error y no se ha cambiado la contraseña");
     }
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false, // Oculta el encabezado
-    });
-  }, [navigation]);
-
   return (
-    <ImageBackground
-      source={require("../../../assets/images/backgroundLogin.png")}
-      style={styles.background}
-    >
+    <Background>
       <View style={styles.overlay}>
-        <View style={styles.divDerechos}>
-          <Text style={styles.derechos}>DERECHOS RESERVADOS</Text>
-        </View>
-        <View style={styles.divImg}>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/LogoLetras.png")}
-          />
-        </View>
-
-        <View style={styles.container}>
-          <Svg
-            width={339}
-            height={324}
-            fill="none"
+        <Logo existsDerechos={false} />
+        <SvgContainer>
+          <Text
+            style={[
+              {
+                marginBottom: "2%",
+                textAlign: "center",
+                width: "100%",
+                fontSize: 24,
+                color: "white",
+                fontFamily: "Inter-ExtraLightItalic",
+              },
+            ]}
           >
-            <Path
-              fill="#2D0A42"
-              d="M0 20C0 8.954 8.954 0 20 0h299c11.046 0 20 8.954 20 20v240.746a20 20 0 0 1-14.648 19.271l-152.887 42.465a20.003 20.003 0 0 1-10.913-.059L14.439 280.128A20 20 0 0 1 0 260.917V20Z"
-            />
-          </Svg>
-          <View style={styles.cajaRegistro}>
-            <Text style={styles.registro}>Cambio de contraseña</Text>
-          </View>
+            Escribe tu nueva contraseña
+          </Text>
           <View style={styles.cajaInputs}>
-            <View style={styles.inputCaja}>
-              <Image
-                source={require("../../../assets/images/pass.png")}
-                style={styles.iconUser}
-              />
+            <View style={styles.cajainput}>
               <TextInput
-                style={[styles.input, styles.inputPass]}
-                placeholder=" Contraseña"
-                placeholderTextColor="rgba(124, 124, 124, 1)"
+                style={styles.input}
+                placeholder="Contraseña"
+                placeholderTextColor="#aaa"
                 secureTextEntry={!isPasswordVisible}
                 value={password}
                 onChangeText={setPassword}
+                autoCapitalize="none"
               />
               <TouchableOpacity
-                style={styles.showPassword}
                 onPress={togglePasswordVisibility}
+                style={styles.showPassword}
               >
                 <Image
+                  style={styles.iconpass}
                   source={
                     currentIcon === "closed"
                       ? require("../../../assets/images/closed.png")
                       : require("../../../assets/images/eye.png")
                   }
-                  style={styles.iconPass}
                 />
               </TouchableOpacity>
             </View>
-            <View style={styles.inputCaja}>
-              <Image
-                source={require("../../../assets/images/pass.png")}
-                style={styles.iconUser}
-              />
+
+            <Text
+              style={[
+                {
+                  marginTop: "8%",
+                  textAlign: "center",
+                  width: "100%",
+                  marginBottom: "10%",
+                  fontSize: 24,
+                  color: "white",
+                  fontFamily: "Inter-ExtraLightItalic",
+                },
+              ]}
+            >
+              Confirma tu contraseña
+            </Text>
+            <View style={[styles.cajainput, { marginBottom: "5%" }]}>
               <TextInput
-                style={[styles.input, styles.inputPass]}
-                placeholder=" Repite la contrasena"
-                placeholderTextColor="rgba(124, 124, 124, 1)"
+                style={styles.input}
+                placeholder="Confirmar contraseña"
                 secureTextEntry={!isPasswordConfirmVisible}
+                placeholderTextColor="#aaa"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                autoCapitalize="none"
               />
               <TouchableOpacity
-                style={styles.showPassword}
                 onPress={togglePasswordConfirmVisibility}
+                style={styles.showPassword}
               >
                 <Image
+                  style={styles.iconpass}
                   source={
                     currentConfirmIcon === "closed"
                       ? require("../../../assets/images/closed.png")
                       : require("../../../assets/images/eye.png")
                   }
-                  style={styles.iconPass}
                 />
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.buttonCaja}>
-            <Pressable
-              style={styles.button}
-              onPress={handleUpdatePassword}
+          <TouchableOpacity
+            style={{
+              backgroundColor: theme.colors.primary,
+              marginTop: "10%",
+              borderColor: "#321c6b", // Color del borde
+              borderRadius: 15,
+              borderBottomWidth: 5,
+              borderRightWidth: 5,
+              shadowRadius: 5,
+              elevation: 5, // Sombra en Android
+              marginVertical: 10,
+              paddingHorizontal: 10,
+              justifyContent: "space-around",
+              alignItems: "center",
+              flexDirection: "row",
+              height: height * 0.06,
+              width: "60%", // Ensure the button width is responsive
+              alignSelf: "center", // Center the button horizontally
+            }}
+            onPress={handleSubmit}
+          >
+            <Text
+              style={{
+                ...styles.buttonText,
+                color: "white",
+                fontSize: 18,
+              }}
             >
-              <Text style={styles.buttonText}>Actualizar Contraseña</Text>
-            </Pressable>
-          </View>
-        </View>
-        <CustomModal 
-        onBackdropPress={toggleAlert}
-        isVisible={isAlertVisible}
-        toggleModal={toggleAlert}
-        modalText={AlertText}
-      />
-        <View style={styles.divSince}>
-          <Text style={styles.since}>Since 2024</Text>
-        </View>
+              Actualizar contraseña
+            </Text>
+          </TouchableOpacity>
+        </SvgContainer>
       </View>
-    </ImageBackground>
+      <ModalRounded
+        text={modalRoundedText}
+        textbutton={modalTextButton}
+        isVisible={isModalRoundedVisible}
+        onClose={() => {
+          setModalRoundedVisible(false);
+        }}
+      />
+    </Background>
   );
 };
 
@@ -193,6 +255,66 @@ const styles = StyleSheet.create({
     height: "100%",
     resizeMode: "cover",
   },
+  buttonText: {
+    fontFamily: "Roboto-ExtraLight.ttf",
+    fontSize: 18,
+    color: "white",
+    textAlign: "center",
+  },
+  iconpass: {
+    position: "absolute",
+    width: 30,
+    height: 30,
+  },
+  button: {
+    width: "65%",
+    height: "12%",
+    marginTop: "4%",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#722D86", // Color principal
+    borderRadius: 15,
+    borderColor: "#430857", // Borde más oscuro
+    borderBottomWidth: 5,
+    borderRightWidth: 5,
+    shadowColor: "#5E0D75", // Añade sombra
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 5, // Sombra en Android
+  },
+  showPassword: {
+    width: "15%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cajainput: {
+    width: "100%",
+    height: "20%",
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    position: "relative",
+  },
+  overlay: {
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  input: {
+    width: "80%",
+    height: 50,
+    marginLeft: "6%",
+    borderWidth: 1,
+    borderColor: "#fff",
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    color: "white",
+  },
+
   divDerechos: {
     marginBottom: "5%",
     marginTop: "40%",
@@ -235,13 +357,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  overlay: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
+
   logo: {
     width: "100%",
     height: "100%",
@@ -271,11 +387,9 @@ const styles = StyleSheet.create({
     fontWeight: "light",
   },
   cajaInputs: {
-    marginTop: "8%",
-    position: "absolute",
     width: "90%",
+    marginTop: "10%",
     height: "50%",
-    top: "18%",
     alignItems: "flex-start",
     justifyContent: "center",
   },
@@ -298,18 +412,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
   },
-  showPassword: {
-    position: "absolute",
-    left: "85%",
-    top: 0,
-    width: 30,
-    height: 30,
-  },
-  input: {
-    color: "#fff",
-    fontSize: 17,
-    width: "100%",
-  },
+
   inputUser: {},
   inputPass: {},
   buttonCaja: {
@@ -319,20 +422,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     alignItems: "center",
     justifyContent: "center",
-  },
-  button: {
-    justifyContent: "center",
-    alignItems: "center",
-    position: "absolute",
-    width: "80%",
-    height: "80%",
-    backgroundColor: "rgba(255, 255, 255, 1)",
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: "#000000",
-    fontSize: 17,
-    fontWeight: "500",
   },
 });
 

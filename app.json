@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "@/assets/images/pngVacio.png",
+      "image": "./assets/images/pngVacio.png",
       "resizeMode": "contain",
       "backgroundColor": "#3c32a8"
     },

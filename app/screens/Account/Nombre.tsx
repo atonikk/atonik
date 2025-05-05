@@ -20,10 +20,14 @@ import { router, useLocalSearchParams } from "expo-router";
 import ModalRounded from "@/components/ModalRounded";
 import { Dimensions } from "react-native";
 import { enableScreens } from "react-native-screens";
-
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useColorScheme } from "react-native";
+import Background from "@/components/Background";
 const { width, height } = Dimensions.get("window");
 const Nombre = () => {
   enableScreens(false);
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const { username, phoneNumber } = useLocalSearchParams();
   const [nombre, setNombre] = useState<string>("");
   const [isModalRoundedVisible, setModalRoundedVisible] =
@@ -60,15 +64,7 @@ const Nombre = () => {
     return null;
   }
   return (
-    <View
-      style={{
-        height: "100%",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#131313", // Asegura que el fondo sea oscuro siempre
-      }}
-    >
+    <Background>
       <StatusBar style="light" backgroundColor="#000000" />
       {/* <ImageBackground
           source={require("../../../assets/images/backgroundLogin.png")}
@@ -80,7 +76,7 @@ const Nombre = () => {
           <View
             style={{
               width: "90%",
-              height: "90%",
+              height: height * 0.32,
               justifyContent: "center",
               alignItems: "center",
               position: "absolute",
@@ -92,9 +88,9 @@ const Nombre = () => {
                 color: "white",
                 fontFamily: "Inter-ExtraLightItalic",
                 fontSize: 28,
-                marginTop: "9%",
                 textAlign: "center",
                 width: "100%",
+                marginBottom: "7%",
               }}
             >
               {" "}
@@ -147,7 +143,7 @@ const Nombre = () => {
         }}
       />
       {/* </ImageBackground> */}
-    </View>
+    </Background>
   );
 };
 

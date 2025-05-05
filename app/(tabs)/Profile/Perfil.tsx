@@ -12,6 +12,9 @@ import {
   Platform,
   Button,
   ActionSheetIOS,
+  ActivityIndicator,
+  useColorScheme,
+  KeyboardAvoidingView,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,23 +32,39 @@ import axios from "axios";
 import * as FileSystem from "expo-file-system";
 import Modal from "react-native-modal";
 import Panel from "@/components/panelPushUp";
+import drawerDark from "@/assets/images/drawer2.png";
+import drawerLight from "@/assets/images/drawerLight.png";
 import CustomModal from "@/components/modalAlert";
 import EventListProfile from "@/components/eventListTopProfile";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import edit from "@/assets/images/editar.png";
+import editLight from "@/assets/images/editarLight.png";
+import add from "@/assets/images/add.png";
+import addLight from "@/assets/images/addLight.png";
+import shadowDark from "@/assets/images/userShadow.png";
+import shadowLight from "@/assets/images/userShadowLight.png";
+import logoDark from "@/assets/images/logo.png";
+import logoLight from "@/assets/images/logoLight.png";
 const { width, height } = Dimensions.get("window");
 import { useProfilePhotoStore } from "@/app/utils/useStore";
+import { useAppTheme } from "@/constants/theme/useTheme";
 const proportionalFontSize = (size: number) => {
   const baseWidth = 375; // Ancho base (puedes ajustarlo según tus necesidades)
   return (size * width) / baseWidth;
 };
 
 const Profile: React.FC = () => {
-  const profilePhoto = useProfilePhotoStore.getState().profilePhoto;
-  const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
+  const profilePhoto = useProfilePhotoStore((state) => state.profilePhoto);
+  const setProfilePhoto = useProfilePhotoStore(
+    (state) => state.setProfilePhoto
+  );
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [isModalVisible, setModalVisible] = useState(false);
-  const [photo, setPhoto] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [descriptionProfile, setdescriptionProfile] = useState<string | null>(
@@ -77,6 +96,7 @@ const Profile: React.FC = () => {
   };
 
   const openModal = () => {
+    setAlertText("Escribe una nueva descripción");
     setModalVisible(true);
   };
 
@@ -91,10 +111,10 @@ const Profile: React.FC = () => {
       if (storedToken !== null) {
         const decoded: any = jwtDecode(storedToken);
         setToken(storedToken);
-        setUsername(decoded.sub.username);
-        console.log("Decoded token:", decoded);
-        setPhoto(decoded.sub.profile_photo);
-        fetchUserData(decoded.sub.username, storedToken);
+        setUsername(decoded.sub.user);
+        fetchUserData(decoded.sub.user, storedToken);
+        console.log("Decoded token en profile :", decoded);
+        setProfilePhoto(decoded.sub.profilePhoto);
       } else {
         setToken(null);
         setIsVisible(true);
@@ -103,17 +123,54 @@ const Profile: React.FC = () => {
       console.error("Error al verificar el token", error);
     }
   };
+  const fetchUserData = async (user: string, token: string) => {
+    const finalUsername = user;
+    console.log("Fetching user data for:", finalUsername);
+    try {
+      const response = await fetch(
+        `${url.url}/api/get_myuser_details/${finalUsername}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+
+        setdescriptionProfile(data.description);
+        setProfilePhoto(data.profile_photo);
+        setFollowers(data.followersnum);
+        setFollowing(data.followingnum);
+      } else {
+        const errorData = await response.json();
+        console.log("Error data:", errorData);
+        showModalAlert(
+          "Tu sesion ha caducado por favor inicia sesion de nuevo"
+        );
+        setTimeout(() => {
+          cleanData();
+        }, 3500);
+      }
+    } catch (error) {
+      showModalAlert("Ha habido un error de conexion");
+    }
+  };
   const cleanData = async () => {
+    setIsLoading(true);
     try {
       await AsyncStorage.removeItem("access_token");
       await AsyncStorage.removeItem("refresh_token");
       setdescriptionProfile(null);
-      setPhoto(null);
+      setProfilePhoto("");
       setUsername(null);
       setProfilePhoto("");
       setFollowers(null);
       setFollowing(null);
       setDecodedToken(null);
+      setIsLoading(false);
       setTimeout(() => {
         router.push({
           pathname: "/(tabs)/home",
@@ -125,39 +182,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  const fetchUserData = async (user: string, token: string) => {
-    const finalUsername = user;
-    try {
-      const response = await fetch(
-        `${url.url}/api/get_myuser_details?username=${encodeURIComponent(
-          finalUsername
-        )}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setdescriptionProfile(data.description);
-        setProfilePhoto(data.profile_photo);
-        setFollowers(data.followersnum);
-        setFollowing(data.followingnum);
-      } else {
-        const errorData = await response.json();
-        cleanData();
-        console.log("Error data:", errorData);
-        showModalAlert(
-          "Tu sesion ha caducado por favor inicia sesion de nuevo"
-        );
-      }
-    } catch (error) {
-      showModalAlert("Ha habido un error de conexion");
-    }
-  };
   useFocusEffect(
     React.useCallback(() => {
       checkToken();
@@ -222,7 +246,7 @@ const Profile: React.FC = () => {
         }
       }
     };
-
+    const fetchUserData = async (user: string, token: string) => {};
     const openGallery = async () => {
       const result = await ImagePicker.launchImageLibraryAsync({
         quality: 1,
@@ -244,7 +268,7 @@ const Profile: React.FC = () => {
       });
       if (!result.canceled) {
         const { uri } = result.assets[0];
-        setImageUri(uri);
+
         uploadImage(uri, username ? username : "user");
       }
     };
@@ -269,7 +293,7 @@ const Profile: React.FC = () => {
 
       if (response.status === 200) {
         console.log("Imagen subida con éxito");
-        setPhoto(imageUri);
+        setProfilePhoto(imageUri);
       } else {
         console.log("Error al subir la imagen");
       }
@@ -299,223 +323,361 @@ const Profile: React.FC = () => {
       Alert.alert("Error", "No se pudo actualizar la descripción");
     }
   };
-  const deleteaccount = async () => {
-    try {
-      const response = await fetch(`${url.url}/api/delete_account`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          user: username,
-        }),
-      });
-      if (response.ok) {
-        Alert.alert("Se ha eliminado la cuenta");
 
-        cleanData();
-      }
-    } catch (error) {
-      console.error("Error al eliminar la cuenta", error);
-      Alert.alert("Error", "No se pudo eliminar la cuenta");
-    }
-  };
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.superior}>
-        {token ? (
-          <Pressable
-            onPress={() => navigation.openDrawer()}
+    <SafeAreaView style={{ flex: 1 }}>
+      <Modal
+        isVisible={isModalVisible}
+        onBackdropPress={closeModal}
+        backdropTransitionOutTiming={0}
+        useNativeDriver={true}
+        hideModalContentWhileAnimating={true}
+        style={{
+          position: "absolute",
+          top: "30%",
+          height: height * 0.2,
+          width: "100%",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+        avoidKeyboard={true}
+      >
+        <View
+          style={{
+            padding: 20,
+            borderRadius: 20,
+            backgroundColor: theme.colors.primary,
+            width: "90%",
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.25,
+            shadowRadius: 4,
+            elevation: 5,
+          }}
+        >
+          <Text
             style={{
-              position: "absolute",
-              left: "2%",
-              height: 40,
-              width: 40,
-              top: "0%",
+              color: "white",
+              fontSize: proportionalFontSize(18),
+              marginBottom: 15,
+              textAlign: "center",
             }}
           >
-            <Image
-              source={require("@/assets/images/drawer2.png")}
-              style={{ resizeMode: "contain", width: 40, height: 40 }}
-            />
-          </Pressable>
-        ) : null}
-
-        <Image
-          source={require("@/assets/images/logo.png")}
-          style={styles.logo}
-        />
-        <View style={styles.cajauser}>
-          <Text style={styles.welcomeText}>{username ? username : ""}</Text>
-        </View>
-      </View>
-      <View style={styles.middle}>
-        {photo ? (
-          <View style={styles.cajafoto}>
-            <Image source={{ uri: photo }} style={styles.profilePhoto} />
+            Editar Descripción
+          </Text>
+          <TextInput
+            placeholder="Escribe la nueva descripción"
+            placeholderTextColor="#7C7C7C"
+            style={{
+              width: "100%",
+              borderBottomWidth: 1,
+              borderBottomColor: "#fff",
+              color: "white",
+              fontSize: proportionalFontSize(16),
+              marginBottom: 20,
+              padding: 5,
+            }}
+            onChangeText={setnewDescription}
+            value={newDescription || ""}
+            editable={true}
+            multiline={true}
+          />
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
             <Pressable
-              onPress={pickImage}
-              style={({ pressed }) => [
-                {
-                  transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
-                  opacity: pressed ? 0.8 : 1,
-                },
-                styles.anadir,
-              ]}
+              onPress={updateDescription}
+              style={{
+                flex: 1,
+                backgroundColor: "white",
+                paddingVertical: 10,
+                borderRadius: 5,
+                alignItems: "center",
+                marginRight: 5,
+              }}
             >
-              <Image
-                source={require("@/assets/images/add.png")}
+              <Text
                 style={{
-                  width: "100%",
-                  height: "100%",
-                  position: "absolute",
-                  right: "0%",
-                  bottom: "0%",
+                  color: "black",
+                  fontSize: proportionalFontSize(16),
                 }}
-              />
+              >
+                Guardar
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={closeModal}
+              style={{
+                flex: 1,
+                backgroundColor: "#7C7C7C",
+                paddingVertical: 10,
+                borderRadius: 5,
+                alignItems: "center",
+                marginLeft: 5,
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: proportionalFontSize(16),
+                }}
+              >
+                Cerrar
+              </Text>
             </Pressable>
           </View>
-        ) : (
-          <View style={styles.cajafoto}>
-            <Image
-              source={require("@/assets/images/userShadow.png")}
-              style={styles.profilePhoto}
-            />
-            {/* <Pressable
-              onPress={() => {
-                cleanData();
+        </View>
+      </Modal>
+      <View
+        style={{
+          ...styles.container,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <View
+          style={{
+            ...styles.superior,
+            borderBottomColor: theme.colors.text,
+            borderBottomWidth: 2,
+          }}
+        >
+          {token ? (
+            <Pressable
+              onPress={() => navigation.openDrawer()}
+              style={{
+                position: "absolute",
+                left: "2%",
+                height: 40,
+                width: 40,
+                top: "0%",
               }}
-              // onPress={pickImage}
-              style={({ pressed }) => [
-                {
-                  transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
-                  opacity: pressed ? 0.8 : 1,
-                },
-                styles.anadir,
-              ]}
             >
               <Image
-                source={require("@/assets/images/add.png")}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  position: "absolute",
-                  right: "0%",
-                  bottom: "0%",
-                }}
+                source={colorScheme === "dark" ? drawerDark : drawerLight}
+                style={{ resizeMode: "contain", width: 40, height: 40 }}
               />
-            </Pressable> */}
+            </Pressable>
+          ) : null}
+
+          <Image
+            source={colorScheme === "dark" ? logoDark : logoLight}
+            style={styles.logo}
+          />
+          <View style={styles.cajauser}>
+            <Text
+              style={{
+                ...styles.welcomeText,
+                color: theme.colors.text, // Cambia el color según el tema
+              }}
+            >
+              {username ? username : ""}
+            </Text>
           </View>
-        )}
-        <View style={styles.cajainfo}>
-          <View style={styles.cajaseguidores}>
-            <View style={styles.seguidosinfo}>
-              <View style={styles.seguidostextcaja}>
-                <Text style={styles.seguidos}>SEGUIDOS</Text>
-              </View>
-              <View style={styles.seguidosvaluecaja}>
-                {following !== null ? (
-                  <Text style={styles.value}>{following}</Text>
-                ) : (
-                  <Text style={styles.value}></Text>
-                )}
-              </View>
-            </View>
-            <View style={styles.seguidoresinfo}>
-              <View style={styles.seguidostextcaja}>
-                <Text style={styles.seguidos}>SEGUIDORES</Text>
-              </View>
-              <View style={styles.seguidosvaluecaja}>
-                {following !== null ? (
-                  <Text style={styles.value}>{followers}</Text>
-                ) : (
-                  <Text style={styles.value}></Text>
-                )}
-              </View>
-            </View>
-          </View>
-          {descriptionProfile === null ? (
-            <View style={styles.cajadescripcion}>
-              <Text style={styles.descripcion}></Text>
-            </View>
-          ) : (
-            <View style={styles.cajadescripcion}>
-              <Text style={styles.descripcion}>{descriptionProfile}</Text>
+        </View>
+        <View style={styles.middle}>
+          {token ? (
+            <View style={styles.cajafoto}>
+              {profilePhoto !== "" ? (
+                <Image
+                  source={{ uri: profilePhoto }}
+                  style={styles.profilePhoto}
+                />
+              ) : (
+                <Image
+                  source={colorScheme === "dark" ? shadowDark : shadowLight}
+                  style={styles.profilePhoto}
+                />
+              )}
+
               <Pressable
-                onPress={openModal}
+                onPress={pickImage}
                 style={({ pressed }) => [
                   {
                     transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
                     opacity: pressed ? 0.8 : 1,
                   },
-                  styles.editar,
+                  styles.anadir,
                 ]}
               >
-                <Image source={require("@/assets/images/editar.png")} />
+                <Image
+                  source={colorScheme === "dark" ? add : addLight}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    position: "absolute",
+                    right: "0%",
+                    bottom: "0%",
+                  }}
+                />
               </Pressable>
             </View>
+          ) : (
+            <View style={styles.cajafoto}>
+              <Image
+                source={require("@/assets/images/userShadow.png")}
+                style={styles.profilePhoto}
+              />
+            </View>
           )}
+          <View style={styles.cajainfo}>
+            {token ? (
+              <View style={styles.cajaseguidores}>
+                <View
+                  style={{
+                    ...styles.seguidosinfo,
+                    borderBottomColor:
+                      colorScheme === "dark" ? "#ffffff" : "#000000",
+                  }}
+                >
+                  <View
+                    style={{
+                      ...styles.seguidostextcaja,
+                    }}
+                  >
+                    <Text style={styles.seguidos}>SEGUIDOS</Text>
+                  </View>
+                  <View style={styles.seguidosvaluecaja}>
+                    {following !== null ? (
+                      <Text
+                        style={{
+                          ...styles.value,
+                          color: theme.colors.text, // Cambia el color según el tema
+                        }}
+                      >
+                        {following}
+                      </Text>
+                    ) : (
+                      <Text style={styles.value}></Text>
+                    )}
+                  </View>
+                </View>
+                <View
+                  style={{
+                    ...styles.seguidoresinfo,
+                    borderBottomColor:
+                      colorScheme === "dark" ? "#ffffff" : "#000000",
+                  }}
+                >
+                  <View style={styles.seguidostextcaja}>
+                    <Text style={styles.seguidos}>SEGUIDORES</Text>
+                  </View>
+                  <View style={styles.seguidosvaluecaja}>
+                    {following !== null ? (
+                      <Text
+                        style={{
+                          ...styles.value,
+                          color: theme.colors.text, // Cambia el color según el tema
+                        }}
+                      >
+                        {followers}
+                      </Text>
+                    ) : (
+                      <Text style={styles.value}></Text>
+                    )}
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <></>
+            )}
+
+            {descriptionProfile === null ? (
+              <View style={styles.cajadescripcion}>
+                <Text style={styles.descripcion}></Text>
+              </View>
+            ) : (
+              <View style={styles.cajadescripcion}>
+                <Text
+                  style={{
+                    ...styles.descripcion,
+                    color: theme.colors.text, // Cambia el color según el tema
+                  }}
+                >
+                  {descriptionProfile}
+                </Text>
+                <Pressable
+                  onPress={openModal}
+                  style={({ pressed }) => [
+                    {
+                      transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                    styles.editar,
+                  ]}
+                >
+                  <Image
+                    source={colorScheme === "dark" ? edit : editLight}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      position: "absolute",
+                      right: "0%",
+                      bottom: "0%",
+                    }}
+                  />
+                </Pressable>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
-      {username ? (
-        <View style={styles.cajaboton}>
-          <Pressable onPress={cleanData} style={styles.button}>
-            <Text style={styles.buttonText}>Cerrar sesion</Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={styles.cajaboton}></View>
-      )}
-      <CustomModal
-        onBackdropPress={toggleAlert}
-        isVisible={isAlertVisible}
-        toggleModal={toggleAlert}
-        modalText={AlertText}
-      />
-      <View style={styles.cajainferior}>
-        {username ? (
-          <View style={styles.cajaquien}>
-            <Text style={styles.userinferior}>{username ? username : ""}</Text>
-            <Text style={styles.mensaje}>estara en estos eventos ...</Text>
+        {token ? (
+          <View style={styles.cajaboton}>
+            <Pressable
+              onPress={cleanData}
+              style={{
+                ...styles.button,
+                backgroundColor: colorScheme === "dark" ? "#d4d4d4" : "#535353",
+              }}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="black" />
+              ) : (
+                <Text
+                  style={{
+                    ...styles.buttonText,
+                    color: colorScheme === "dark" ? "black" : "white", // Cambia el color según el tema
+                  }}
+                >
+                  Cerrar sesion
+                </Text>
+              )}
+            </Pressable>
           </View>
         ) : (
           <></>
         )}
-      </View>
-      <View style={styles.cajaeventos}>
-        {/* {username ? (
+
+        <View style={styles.cajainferior}>
+          {username ? (
+            <View style={styles.cajaquien}>
+              <Text style={styles.userinferior}>
+                {username ? username : ""}
+              </Text>
+              <Text style={styles.mensaje}>estara en estos eventos ...</Text>
+            </View>
+          ) : (
+            <></>
+          )}
+        </View>
+        <View style={styles.cajaeventos}>
+          {/* {username ? (
           <EventListProfile usernameToget={username ? username : ""} />
         ) : (
           <Text>Esta vacio por aqui ...</Text>
         )} */}
-      </View>
-      <Modal isVisible={isModalVisible} onBackdropPress={closeModal}>
-        <View style={styles.modalContent}>
-          <Text style={styles.whitetext}>Editar Descripcion</Text>
-          <View style={styles.inputCaja}>
-            <TextInput
-              placeholderTextColor="#7C7C7C"
-              style={styles.input}
-              placeholder="Escribe la nueva descripción "
-              onChangeText={setnewDescription}
-            />
-            <Image
-              source={require("@/assets/images/editar.png")}
-              style={styles.iconUser}
-            />
-          </View>
-          <View style={styles.modalButtons}>
-            <Pressable onPress={updateDescription} style={styles.saveButton}>
-              <Text style={styles.buttonText}>Guardar</Text>
-            </Pressable>
-
-            <Pressable onPress={closeModal} style={styles.cancelButton}>
-              <Text style={styles.buttonText}>Cancelar</Text>
-            </Pressable>
-          </View>
         </View>
-      </Modal>
+
+       
+      </View>
+      <Panel
+        isVisible={isVisible}
+        togglePanel={togglePanel}
+        closePanel={closePanel}
+      />{" "}
       <Panel
         isVisible={isVisible}
         togglePanel={togglePanel}
@@ -527,10 +689,7 @@ const Profile: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "rgba(19, 19, 19, 1)",
-    width: "100%",
-    height: "100%",
-    position: "relative",
+    flex: 1,
   },
   superior: {
     position: "relative",
@@ -539,7 +698,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "13%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -550,7 +708,6 @@ const styles = StyleSheet.create({
   welcomeText: {
     marginTop: "0%",
     fontStyle: "italic",
-    color: "white",
     fontSize: proportionalFontSize(24),
   },
   middle: {
@@ -589,11 +746,9 @@ const styles = StyleSheet.create({
     borderRadius: 55,
   },
   cajainfo: {
-    position: "absolute",
     width: "55%",
     height: "90%",
     left: "45%",
-    top: "0%",
   },
   cajaseguidores: {
     marginLeft: proportionalFontSize(5),
@@ -604,18 +759,16 @@ const styles = StyleSheet.create({
   },
   seguidosinfo: {
     width: "40%",
-    height: width > 375 ? "85%" : "60%",
+    height: height * 0.07,
     top: "10%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
   },
   seguidoresinfo: {
     width: "50%",
     marginLeft: "5%",
-    height: width > 375 ? "85%" : "60%",
+    height: height * 0.07,
     top: "10%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
   },
   seguidostextcaja: {
     alignItems: "center",
@@ -688,10 +841,8 @@ const styles = StyleSheet.create({
     marginTop: "-2%",
   },
   cajainferior: {
-    position: "absolute",
     width: "100%",
     height: "50%",
-    top: height * 0.45,
   },
 
   userinferior: {
@@ -701,7 +852,6 @@ const styles = StyleSheet.create({
     fontSize: proportionalFontSize(16),
   },
   cajaquien: {
-    top: "27%",
     marginLeft: "2%",
     alignItems: "center",
     flexDirection: "row",

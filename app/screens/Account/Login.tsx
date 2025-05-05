@@ -11,6 +11,9 @@ import {
   Alert,
   Pressable,
   BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import axios, { AxiosError } from "axios";
@@ -22,11 +25,19 @@ import CustomModal from "../../../components/modalAlert";
 import Logo from "@/components/Logo";
 import SvgContainer from "@/components/SvgContainer";
 import { useProfilePhotoStore } from "@/app/utils/useStore";
+import Background from "@/components/Background";
+import { useFont } from "@shopify/react-native-skia";
+import { useFonts } from "expo-font";
 const { width, height } = Dimensions.get("window");
 const buttonWidth = width * 0.5;
 const buttonHeight = height * 0.05;
 
 const Login: React.FC = () => {
+  const [fontsLoaded] = useFonts({
+    "Inter-Light": require("@/assets/fonts/Inter/Inter-Light.ttf"),
+    "Inter-Bold": require("@/assets/fonts/Inter/Inter-Bold.ttf"),
+    "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
+  });
   const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
   const profile_photo = useProfilePhotoStore.getState().profilePhoto;
   const navigation = useNavigation();
@@ -76,8 +87,12 @@ const Login: React.FC = () => {
       });
 
       if (response && response.data) {
-        console.log("Respuesta del servidor:", response.data);
-        console.log("Token:", response.data.access_token);
+        await AsyncStorage.setItem("access_token", response.data.access_token);
+        setTimeout(() => {
+          router.replace({
+            pathname: "/(tabs)/home",
+          });
+        }, 2000);
         const token = response.data.access_token;
         const decoded: any = jwtDecode(token);
         console.log("Decoded JWT:", decoded);
@@ -113,205 +128,150 @@ const Login: React.FC = () => {
   }, [navigation]);
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/backgroundLogin.png")}
-      style={styles.background}
-    >
+    <Background>
       <View style={styles.overlay}>
         <Logo existsDerechos={false} />
         <SvgContainer>
-          <Text style={styles.bienvenida}>Bienvenido</Text>
-          <View style={styles.cajainputs}>
-            <View style={styles.inputcaja}>
-              <TextInput
-                style={[styles.input]}
-                placeholder="Usuario o Numero de telefono"
-                autoCapitalize="none"
-                placeholderTextColor="#7C7C7C"
-                value={usuario}
-                onChangeText={setUsuario}
-              />
-            </View>
-            <View style={styles.inputcaja}>
-              <TextInput
-                style={[styles.input, styles.inputPass]}
-                placeholder="Contraseña"
-                placeholderTextColor="rgba(124, 124, 124, 1)"
-                secureTextEntry={!isPasswordVisible}
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity
-                style={styles.showpassword}
-                onPress={togglePasswordVisibility}
-              >
-                <Image
-                  source={
-                    currentIcon === "closed"
-                      ? require("../../../assets/images/closed.png")
-                      : require("../../../assets/images/eye.png")
-                  }
-                  style={styles.iconpass}
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.cajaforgot}>
-              <Pressable
-                onPress={() =>
-                  router.push({
-                    pathname: "/screens/Account/VerificationPassword",
-                  })
-                }
-              >
-                <Text style={styles.contrasenaolvidada}>
-                  Olvide mi contraseña
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={[
-              styles.button,
-              { width: buttonWidth, height: buttonHeight },
-            ]}
-            onPress={() => {
-              logueo();
+          <View
+            style={{
+              width: "80%",
             }}
           >
-            <Text style={styles.buttonText}>Continuar</Text>
-          </TouchableOpacity>
+            <Text style={styles.titulo}>Bienvenido</Text>
+
+            <View style={styles.cajainputs}>
+              <View style={styles.inputcaja}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Usuario o Número de teléfono"
+                  autoCapitalize="none"
+                  placeholderTextColor="#7C7C7C"
+                  value={usuario}
+                  onChangeText={setUsuario}
+                />
+              </View>
+
+              <View style={styles.inputcaja}>
+                <TextInput
+                  style={[styles.input, styles.inputPass]}
+                  placeholder="Contraseña"
+                  placeholderTextColor="rgba(124, 124, 124, 1)"
+                  secureTextEntry={!isPasswordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  style={styles.showpassword}
+                  onPress={togglePasswordVisibility}
+                >
+                  <Image
+                    source={
+                      currentIcon === "closed"
+                        ? require("../../../assets/images/closed.png")
+                        : require("../../../assets/images/eye.png")
+                    }
+                    style={styles.iconpass}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.cajaforgot}>
+                <Pressable
+                  onPress={() =>
+                    router.push("/screens/Account/VerificationPassword")
+                  }
+                >
+                  <Text style={styles.contrasenaolvidada}>
+                    Olvidé mi contraseña
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.botonContinuar} onPress={logueo}>
+              <Text style={styles.textoContinuar}>Continuar</Text>
+            </TouchableOpacity>
+          </View>
         </SvgContainer>
       </View>
+
       <CustomModal
         onBackdropPress={toggleAlert}
         isVisible={isAlertVisible}
         toggleModal={toggleAlert}
         modalText={AlertText}
       />
-    </ImageBackground>
+    </Background>
   );
 };
-
 const styles = StyleSheet.create({
-  background: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
   overlay: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
+    flex: 1,
     justifyContent: "center",
-    position: "relative",
   },
-  divderechos: {
-    marginBottom: "5%",
-    marginTop: "40%",
-    bottom: "20%",
-    width: "50%",
-    height: "8%",
-    justifyContent: "center",
-    alignItems: "center",
-    position: "relative",
-  },
-  derechos: {
+  titulo: {
+    color: "white",
+    fontFamily: "Inter-Bold",
+    fontSize: 28,
     textAlign: "center",
-    fontWeight: "bold",
-    color: "white",
-    fontSize: 24,
+    marginBottom: "5%",
   },
-  divimg: {
-    bottom: "20%",
-    marginBottom: "2%",
-    width: "40%",
-    height: "25%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  logo: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
-  },
-  bienvenida: {
-    marginTop: "10%",
-    color: "white",
-    fontSize: 30,
-    fontWeight: "light",
-  },
-  cajainputs: {
-    width: "90%",
-    marginTop: "5%",
-    alignItems: "flex-start",
-  },
+  cajainputs: {},
   inputcaja: {
+    marginBottom: 15,
     position: "relative",
-    width: "100%",
-    borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
-    flexDirection: "row",
-    marginBottom: "10%",
   },
   input: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
     color: "white",
-    fontSize: 17,
+    fontSize: 16,
     width: "100%",
-    position: "relative",
   },
-  inputPass: {},
+  inputPass: {
+    paddingRight: 45, // espacio para el icono
+  },
   showpassword: {
     position: "absolute",
-    left: "90%",
-    top: 0,
-    width: 30,
-    height: 30,
+    right: 10,
+    top: "30%",
   },
   iconpass: {
-    position: "absolute",
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
+    tintColor: "#ccc",
   },
   cajaforgot: {
-    bottom: "15%",
-    position: "relative",
-    width: "100%",
+    alignItems: "flex-end",
+    marginTop: 5,
   },
   contrasenaolvidada: {
+    color: "#ccc",
     fontSize: 14,
+    textDecorationLine: "underline",
+  },
+  botonContinuar: {
+    backgroundColor: "#6438D7",
+    borderColor: "#321c6b",
+    borderRadius: 15,
+    borderBottomWidth: 5,
+    borderRightWidth: 5,
+    shadowRadius: 5,
+    elevation: 5,
+    marginTop: 20,
+    paddingHorizontal: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    height: height * 0.06,
+    width: "80%",
+    alignSelf: "center",
+  },
+  textoContinuar: {
     color: "white",
-    position: "relative",
-    fontStyle: "italic",
-  },
-  button: {
-    backgroundColor: "rgba(255, 255, 255, 1)",
-    borderRadius: 10,
-    justifyContent: "center",
-    marginTop: "5%",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#000000",
-    fontSize: 17,
-    fontWeight: "500",
-  },
-  divsince: {
-    justifyContent: "center",
-    alignItems: "center",
-    bottom: "10%",
-    width: "100%",
-    height: "4%",
-    position: "relative",
-  },
-  since: {
-    position: "absolute",
-    bottom: "2%",
-    textAlign: "center",
-    justifyContent: "center",
-    alignItems: "center",
-    fontStyle: "italic",
-    color: "white",
-    fontSize: 20,
+    fontSize: 18,
+    fontFamily: "Inter-Light",
   },
 });
 

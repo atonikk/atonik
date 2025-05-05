@@ -14,7 +14,8 @@ import axios from "axios";
 import { useNavigation, router, useLocalSearchParams } from "expo-router";
 import url from "../../../constants/url.json";
 import CustomModal from "@/components/modalAlert";
-
+import Background from "@/components/Background";
+import SvgContainer from "@/components/SvgContainer";
 const VerificationRegister: React.FC = () => {
   const navigation = useNavigation();
   const [verificationCode, setVerificationCode] = useState("");
@@ -104,64 +105,50 @@ const VerificationRegister: React.FC = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/backgroundLogin.png")}
-      style={styles.background}
-    >
-      <View style={styles.overlay}>
-        <View style={styles.divderechos}>
-          <Text style={styles.derechos}>DERECHOS RESERVADOS</Text>
-        </View>
-        <View style={styles.divimg}>
-          <Image
-            style={styles.logo}
-            source={require("../../../assets/images/LogoLetras.png")}
-          />
-        </View>
+    <Background>
+      <SvgContainer>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            <Svg width={320} height={344} fill="none">
+              <Path
+                fill="#2D0A42"
+                d="M0 20C0 8.954 8.954 0 20 0h280c11.046 0 20 8.954 20 20v249.632a20 20 0 0 1-14.195 19.139l-143.181 43.431a20.004 20.004 0 0 1-11.834-.069L13.972 288.882A20 20 0 0 1 0 269.812V20Z"
+              />
+            </Svg>
+            <View style={styles.cajabienvenida}>
+              <Text style={styles.bienvenida}>Código de verificación</Text>
+            </View>
 
-        <View style={styles.container}>
-          <Svg width={320} height={344} fill="none">
-            <Path
-              fill="#2D0A42"
-              d="M0 20C0 8.954 8.954 0 20 0h280c11.046 0 20 8.954 20 20v249.632a20 20 0 0 1-14.195 19.139l-143.181 43.431a20.004 20.004 0 0 1-11.834-.069L13.972 288.882A20 20 0 0 1 0 269.812V20Z"
-            />
-          </Svg>
-          <View style={styles.cajabienvenida}>
-            <Text style={styles.bienvenida}>Código de verificación</Text>
-          </View>
+            <View style={styles.cajainputs}>
+              <TextInput
+                style={styles.input}
+                placeholder="Código"
+                placeholderTextColor="rgba(255, 255, 255, 0.7)"
+                keyboardType="numeric"
+                value={verificationCode}
+                onChangeText={setVerificationCode}
+              />
+            </View>
 
-          <View style={styles.cajainputs}>
-            <TextInput
-              style={styles.input}
-              placeholder="Código"
-              placeholderTextColor="rgba(255, 255, 255, 0.7)"
-              keyboardType="numeric"
-              value={verificationCode}
-              onChangeText={setVerificationCode}
-            />
-          </View>
-
-          <View style={styles.cajabotones}>
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleContinue}
-              disabled={isCodeSent && timer > 0}
-            >
-              <Text style={styles.buttonText}>Verificar</Text>
-            </TouchableOpacity>
+            <View style={styles.cajabotones}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={handleContinue}
+                disabled={isCodeSent && timer > 0}
+              >
+                <Text style={styles.buttonText}>Verificar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
-      <CustomModal
-        onBackdropPress={toggleAlert}
-        isVisible={isAlertVisible}
-        toggleModal={toggleAlert}
-        modalText={AlertText}
-      />
-      <View style={styles.divsince}>
-        <Text style={styles.since}>Since 2024</Text>
-      </View>
-    </ImageBackground>
+        <CustomModal
+          onBackdropPress={toggleAlert}
+          isVisible={isAlertVisible}
+          toggleModal={toggleAlert}
+          modalText={AlertText}
+        />
+      </SvgContainer>
+    </Background>
   );
 };
 

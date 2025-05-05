@@ -12,6 +12,7 @@ import {
   Platform,
   Button,
   ActionSheetIOS,
+  useColorScheme,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,6 +27,8 @@ import url from "@/constants/url.json";
 import { RootStackParamList } from "@/app/_layout";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
+import drawerDark from "@/assets/images/drawer2.png";
+import drawerLight from "@/assets/images/drawerLight.png";
 import * as FileSystem from "expo-file-system";
 import Modal from "react-native-modal";
 import Logo from "@/components/Logo";
@@ -35,10 +38,13 @@ import EventListProfile from "@/components/eventListTopProfile";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useProfilePhotoStore } from "@/app/utils/useStore";
+import { useAppTheme } from "@/constants/theme/useTheme";
 const { width } = Dimensions.get("window");
 
 export default function Delete() {
   const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
 
   useEffect(() => {
     checkToken();
@@ -112,15 +118,17 @@ export default function Delete() {
     }
   };
   return (
-    <View style={styles.container}>
+    <View
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
       <View style={styles.superior}>
         <Pressable
           onPress={() => navigation.openDrawer()}
           style={styles.drawerButton}
         >
           <Image
-            source={require("@/assets/images/drawer2.png")}
-            style={styles.drawerIcon}
+            source={colorScheme === "dark" ? drawerDark : drawerLight}
+            style={{ resizeMode: "contain", width: 40, height: 40 }}
           />
         </Pressable>
       </View>
@@ -132,13 +140,13 @@ export default function Delete() {
         <Logo existsDerechos={false} />
         <View style={styles.content}>
           {" "}
-          <Text style={styles.infoText}>
+          <Text style={{ ...styles.infoText, color: theme.colors.text }}>
             Al borrar su cuenta, todos sus datos serán eliminados
             permanentemente. Esto incluye los tickets vigentes, los cuales no
             serán reembolsados. Por favor, asegúrese de estar seguro antes de
             proceder.
           </Text>
-          <Text style={styles.infoText}>
+          <Text style={{ ...styles.infoText, color: theme.colors.text }}>
             Si presenta algún problema con su cuenta, puede hablar con soporte
             utilizando el botón "Hablar con soporte".
           </Text>
@@ -160,7 +168,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000000",
+    paddingBottom: "25%",
   },
   superior: {
     position: "relative",
@@ -197,7 +205,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   infoText: {
-    color: "#FFF",
     textAlign: "center",
     fontSize: 16,
     lineHeight: 24,

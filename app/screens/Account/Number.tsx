@@ -20,7 +20,16 @@ import { router, useLocalSearchParams, useRouter } from "expo-router";
 import auth from "@react-native-firebase/auth";
 import firestore from "@react-native-firebase/firestore";
 import ModalRounded from "@/components/ModalRounded";
+import Background from "@/components/Background";
+import { Dimensions } from "react-native";
+import { LightTheme, DarkTheme } from "@/constants/theme/themes";
+import { Theme } from "@/constants/theme/types";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useColorScheme } from "react-native";
+const { width, height } = Dimensions.get("window");
 const Number = () => {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const { username } = useLocalSearchParams();
   const [isVerified, setIsVerified] = useState(false);
   const [number, setNumber] = useState<string>("");
@@ -97,157 +106,146 @@ const Number = () => {
     return null;
   }
   return (
-    <KeyboardAvoidingView
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#000000",
-      }}
-    >
-      <StatusBar style="light" backgroundColor="#000000" />
-      <ImageBackground
-        source={require("../../../assets/images/backgroundLogin.png")}
-        style={styles.background}
-      >
-        <View style={styles.overlay}>
-          <Logo existsDerechos={false} />
-          <SvgContainer>
-            <View
-              style={{
-                width: "90%",
-                height: "90%",
-                justifyContent: "center",
-                alignItems: "center",
-                position: "absolute",
-                top: "0%",
-              }}
-            >
-              {!confirmation ? (
-                <View
+    <Background>
+      <View style={styles.overlay}>
+        <Logo existsDerechos={false} />
+        <SvgContainer>
+          <View
+            style={{
+              width: "90%",
+              height: "90%",
+              justifyContent: "center",
+              alignItems: "center",
+              position: "absolute",
+              top: "0%",
+            }}
+          >
+            {!confirmation ? (
+              <View
+                style={{
+                  width: "90%",
+                  height: "90%",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: "8%",
+                }}
+              >
+                <Text
                   style={{
-                    width: "90%",
-                    height: "90%",
-                    alignItems: "center",
-                    position: "absolute",
-                    top: "8%",
+                    color: "white",
+                    fontFamily: "Inter-ExtraLightItalic",
+                    fontSize: 28,
+                    marginBottom: "5%",
+                    textAlign: "center",
+                    width: "100%",
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "white",
-                      fontFamily: "Inter-ExtraLightItalic",
-                      fontSize: 28,
-                      marginTop: "9%",
-                      textAlign: "center",
-                      width: "100%",
-                    }}
-                  >
-                    {" "}
-                    Escribe tu número de teléfono
-                  </Text>
+                  {" "}
+                  Escribe tu número de teléfono
+                </Text>
 
-                  <TextInput
-                    style={{
-                      width: "100%",
-                      height: "20%",
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#FFFFFF",
-                      fontFamily: "Inter-ExtraLightItalic",
-                      borderRadius: 20,
-                      textAlign: "center",
-                      fontSize: 24,
-                      color: "white",
-                      marginBottom: "15%",
-                    }}
-                    value={number}
-                    onChangeText={(text) => setNumber(text)}
-                    maxLength={10}
-                    autoCorrect={false}
-                    autoComplete="off"
-                    keyboardType="phone-pad"
-                    placeholder="Ej: 3208435424"
-                    placeholderTextColor="#c0c0c0"
-                  />
-                  <BotonRegister
-                    textboton="Continuar"
-                    onPress={() => checkPhone(number)}
-                  />
-                </View>
-              ) : (
-                <View
+                <TextInput
                   style={{
                     width: "100%",
-                    height: "100%",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    position: "absolute",
-                    top: "0%",
+                    height: height * 0.05,
+                    borderBottomWidth: 1,
+                    borderBottomColor: 'white',
+                    fontFamily: "Inter-ExtraLightItalic",
+                    borderRadius: 20,
+                    textAlign: "center",
+                    fontSize: 24,
+                    marginBottom: "15%",
+                    color: 'white',
+                  }}
+                  value={number}
+                  onChangeText={(text) => setNumber(text)}
+                  maxLength={10}
+                  autoCorrect={false}
+                  autoComplete="off"
+                  keyboardType="phone-pad"
+                  placeholder="Ej: 3208435424"
+                  placeholderTextColor="#c0c0c0"
+                />
+                <BotonRegister
+                  textboton="Continuar"
+                  onPress={() => checkPhone(number)}
+                />
+              </View>
+            ) : (
+              <View
+                style={{
+                  width: "100%",
+                  height: height * 0.32,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  position: "absolute",
+                  top: "0%",
+                  
+                }}
+              >
+                <Text
+                  style={{
+                    color: "white",
+                    fontFamily: "Inter-ExtraLightItalic",
+                    fontSize: 24,
+                    textAlign: "center",
+                    width: "100%",
+                    marginBottom: "7%",
+
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "white",
-                      fontFamily: "Inter-ExtraLightItalic",
-                      fontSize: 24,
-                      marginTop: "9%",
-                      textAlign: "center",
-                      width: "100%",
-                    }}
-                  >
-                    {" "}
-                    Escribe el codigo de verificacion que llego a tu telefono
-                  </Text>
-                  <TextInput
-                    style={{
-                      width: "100%",
-                      height: "20%",
-                      borderBottomWidth: 1,
-                      borderBottomColor: "#FFFFFF",
-                      fontFamily: "Inter-ExtraLightItalic",
-                      borderRadius: 20,
-                      textAlign: "center",
-                      fontSize: 24,
-                      color: "white",
-                      marginBottom: "10%",
-                    }}
-                    value={code}
-                    onChangeText={(text) => setCode(text)}
-                    maxLength={6}
-                    autoCorrect={false}
-                    autoComplete="off"
-                    autoFocus={true}
-                    returnKeyType="done"
-                    onSubmitEditing={() => {
-                      confirmCode(code);
-                    }}
-                    blurOnSubmit={false}
-                    enablesReturnKeyAutomatically={true}
-                    textContentType="oneTimeCode"
-                    keyboardType="numeric"
-                    placeholder="EJ. 123456"
-                    placeholderTextColor="#575757"
-                    autoCapitalize="none"
-                  />
-                  <BotonRegister
-                    textboton="Verificar"
-                    onPress={() => confirmCode(code)}
-                  />
-                </View>
-              )}
-            </View>
-          </SvgContainer>
-        </View>
-        <ModalRounded
-          text={modalRoundedText}
-          textbutton={modalTextButton}
-          isVisible={isModalRoundedVisible}
-          onClose={() => {
-            setModalRoundedVisible(false);
-          }}
-        />
-      </ImageBackground>
-    </KeyboardAvoidingView>
+                  {" "}
+                  Escribe el codigo de verificacion que llego a tu telefono
+                </Text>
+                <TextInput
+                  style={{
+                    width: "100%",
+                    height: height * 0.05,
+                    borderBottomWidth: 1,
+                    borderBottomColor: 'white',
+                    fontFamily: "Inter-ExtraLightItalic",
+                    borderRadius: 20,
+                    textAlign: "center",
+                    fontSize: 24,
+                    marginBottom: "15%",
+                    color: 'white',
+                  }}
+                  value={code}
+                  onChangeText={(text) => setCode(text)}
+                  maxLength={6}
+                  autoCorrect={false}
+                  autoComplete="off"
+                  autoFocus={true}
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    confirmCode(code);
+                  }}
+                  blurOnSubmit={false}
+                  enablesReturnKeyAutomatically={true}
+                  textContentType="oneTimeCode"
+                  keyboardType="numeric"
+                  placeholder="EJ. 123456"
+                  placeholderTextColor="#575757"
+                  autoCapitalize="none"
+                />
+                <BotonRegister
+                  textboton="Verificar"
+                  onPress={() => confirmCode(code)}
+                />
+              </View>
+            )}
+          </View>
+        </SvgContainer>
+      </View>
+      <ModalRounded
+        text={modalRoundedText}
+        textbutton={modalTextButton}
+        isVisible={isModalRoundedVisible}
+        onClose={() => {
+          setModalRoundedVisible(false);
+        }}
+      />
+    </Background>
   );
 };
 

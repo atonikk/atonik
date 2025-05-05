@@ -7,41 +7,34 @@ import {
   StyleSheet,
   Pressable,
   SafeAreaView,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  FlatList,
   ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
+  FlatList,
+  Dimensions,
+  useColorScheme,
 } from "react-native";
 import axios from "axios";
 import url from "../../constants/url.json";
-import { LinearGradient } from "expo-linear-gradient"; // Asegúrate de instalar expo-linear-gradient
 import { useNavigation, router } from "expo-router";
 import EventItem from "@/components/eventItemListSearch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { criticallyDampedSpringCalculations } from "react-native-reanimated/lib/typescript/reanimated2/animation/springUtils";
 import Panel from "@/components/panelPushUp";
-import { Dimensions } from "react-native";
-const { height, width } = Dimensions.get("window");
+import { useAppTheme } from "@/constants/theme/useTheme";
+
+const { height } = Dimensions.get("window");
+
 export default function Tab() {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("Usuarios");
   const [keyword, setKeyword] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const navigation = useNavigation();
   const [isVisible, setIsVisible] = useState(false);
 
-  const togglePanel = () => {
-    setIsVisible(!isVisible);
-  };
-
-  const closePanel = () => {
-    setIsVisible(false);
-  };
+  const togglePanel = () => setIsVisible(!isVisible);
+  const closePanel = () => setIsVisible(false);
 
   interface User {
     _id: string;
@@ -66,59 +59,40 @@ export default function Tab() {
     longitude: string;
     images: string[];
   }
+
   const searchUsers = async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      console.log("Token:", token);
-      console.log("Haciendo la búsqueda");
-      if (token === null) {
+      if (!token) {
         togglePanel();
-      } else {
-        setLoading(true);
-        const response = await axios.get(
-          `${url.url}/api/search/username?keyword=${keyword}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        if (response.data.length === 0) {
-          setError("No se encontraron usuarios con el criterio de búsqueda.");
-        } else {
-          setUsers(response.data);
-        }
+        return;
       }
+      setLoading(true);
+      const response = await axios.get(
+        `${url.url}/api/search/username?keyword=${keyword}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsers(response.data.length ? response.data : []);
+      setError(response.data.length ? null : "No se encontraron usuarios.");
     } catch (error) {
-      console.log("Estre es el error",error);
+      setError("Error al buscar usuarios.");
     } finally {
       setLoading(false);
     }
   };
 
-  const Separator = () => (
-    <View style={{ height: 1, backgroundColor: "#cccccc" }} />
-  );
   const searchEvents = async () => {
-    setLoading(true);
-    setError(null);
     try {
       const token = await AsyncStorage.getItem("access_token");
-
+      setLoading(true);
       const response = await axios.get(
         `${url.url}/api/search/event?keyword=${keyword}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (response.data.length === 0) {
-        setError("No se encontraron eventos con el criterio de búsqueda.");
-      }
-      setEvents(response.data);
+      setEvents(response.data.length ? response.data : []);
+      setError(response.data.length ? null : "No se encontraron eventos.");
     } catch (error) {
-      setError("No se.");
+      setError("Error al buscar eventos.");
     } finally {
       setLoading(false);
     }
@@ -141,31 +115,37 @@ export default function Tab() {
         })
       }
     >
-      {item.profile_photo === "" ? (
-        <Image
-          source={require("../../assets/images/userShadow.png")}
-          style={styles.userImage}
-        />
-      ) : (
-        <Image source={{ uri: item.profile_photo }} style={styles.userImage} />
-      )}
-      <Text style={styles.userName}>{item.username}</Text>
+      <Image
+        source={
+          item.profile_photo
+            ? { uri: item.profile_photo }
+            : require("../../assets/images/userShadow.png")
+        }
+        style={styles.userImage}
+      />
+      <Text style={[styles.userName, { color: theme.colors.text }]}>
+        {item.username}
+      </Text>
     </Pressable>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <View style={styles.nav}>
         <View style={styles.bar}>
           <Image
-            tintColor={"#ffffffab"}
+            tintColor={theme.colors.text}
             style={styles.searchIcon}
             source={require("../../assets/images/searchIcon.png")}
           />
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: theme.colors.text }]}
             placeholder="Busca usuarios o eventos"
-            placeholderTextColor="#888"
+            placeholderTextColor={
+              colorScheme === "dark" ? "#ffffffd3" : "#000000"
+            }
             value={keyword}
             onChangeText={setKeyword}
             onSubmitEditing={
@@ -182,7 +162,13 @@ export default function Tab() {
               activeTab === "Usuarios" && styles.activeTabButton,
             ]}
           >
-            <Text style={styles.buttontext}>Usuarios</Text>
+            <Text
+              style={{
+                color: activeTab === "Usuarios" ? "#a681ff" : theme.colors.text,
+              }}
+            >
+              Usuarios
+            </Text>
           </Pressable>
           <Pressable
             onPress={() => setActiveTab("Eventos")}
@@ -191,51 +177,47 @@ export default function Tab() {
               activeTab === "Eventos" && styles.activeTabButton,
             ]}
           >
-            <Text style={styles.buttontext}>Eventos</Text>
+            <Text
+              style={{
+                color: activeTab === "Eventos" ? "#a681ff" : theme.colors.text,
+              }}
+            >
+              Eventos
+            </Text>
           </Pressable>
         </View>
       </View>
       <View style={styles.listContent}>
         {loading ? (
-          <View
-            style={{
-              position: "absolute",
-              top: "50%",
-              width: "100%",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <ActivityIndicator size="large" color="#733086" />
-          </View>
+          <ActivityIndicator
+            size="large"
+            color="#733086"
+            style={{ marginTop: "50%" }}
+          />
         ) : error ? (
-          <Text style={styles.errorText}>{error}</Text>
+          <Text style={[styles.errorText, { color: theme.colors.text }]}>
+            {error}
+          </Text>
         ) : activeTab === "Usuarios" ? (
           users.length > 0 ? (
-            <View style={styles.resultadosDiv}>
-              <FlatList
-                data={users}
-                renderItem={renderUser}
-                keyExtractor={(item) => item._id}
-                style={styles.listausers}
-              />
-            </View>
+            <FlatList
+              data={users}
+              renderItem={renderUser}
+              keyExtractor={(item) => item._id}
+              style={{ marginTop: "18%" }}
+            />
           ) : (
-            <View style={styles.noResultsDiv}>
-              <Text style={styles.noResultsText}>Busca a tus amigos! </Text>
-            </View>
+            <Text style={[styles.noResultsText, { color: theme.colors.text }]}>
+              Busca a tus amigos!
+            </Text>
           )
         ) : activeTab === "Eventos" ? (
           events.length > 0 ? (
-            <View style={styles.resultadosDiv}>
-              <EventItem events={events} state={true} navigation={navigation} />
-            </View>
+            <></>
           ) : (
-            <View style={styles.noResultsDiv}>
-              <Text style={styles.noResultsText}>
-                Busca algun evento de tu interes!
-              </Text>
-            </View>
+            <Text style={[styles.noResultsText, { color: theme.colors.text }]}>
+              Busca algún evento de tu interés!
+            </Text>
           )
         ) : null}
       </View>
@@ -250,22 +232,10 @@ export default function Tab() {
 
 const styles = StyleSheet.create({
   container: {
-    display: "flex",
-    flexDirection: "column",
-    padding: "2%",
-    flex: 1, // Usar flex: 1 para ocupar toda la pantalla
-    backgroundColor: "#131313",
-  },
-  keyboardAvoidingView: {
     flex: 1,
-    width: "100%",
-  },
-  listausers: {
-    width: "100%",
-    height: "100%",
+    padding: "2%",
   },
   nav: {
-    position: "relative",
     paddingTop: "10%",
     alignItems: "center",
     width: "100%",
@@ -284,14 +254,12 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%",
     paddingLeft: 10,
-    color: "#ffffffd3",
   },
   searchIcon: {
     marginLeft: 10,
     height: 27,
     width: 27,
   },
-
   cajabuttons: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -307,10 +275,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 3,
     borderBottomColor: "#a681ff",
   },
-  buttontext: {
-    color: "#ffffffd3",
-    textAlign: "center",
-  },
   listContent: {
     marginTop: "5%",
     position: "absolute",
@@ -319,7 +283,6 @@ const styles = StyleSheet.create({
     height: "90%",
   },
   userItem: {
-    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
@@ -333,41 +296,16 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   userName: {
-    color: "#ffffffd3",
-  },
-  resultadosDiv: {
-    marginTop: "20%",
-    alignItems: "center",
-    width: "100%",
-    height: "100%",
-    paddingBottom: height * 0.1,
-  },
-
-  errorText: {
-    width: "100%",
-    position: "absolute",
-    top: "50%",
     fontSize: 16,
-    color: "red",
-    textAlign: "center",
   },
-  noResultsDiv: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+  errorText: {
+    marginTop: "50%",
+    fontSize: 16,
+    textAlign: "center",
   },
   noResultsText: {
-    position: "absolute",
-    top: "30%",
+    marginTop: "30%",
     fontSize: 16,
-    color: "#888",
     textAlign: "center",
-  },
-  eventItem: {
-    width: "100%",
-    flexDirection: "row",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
   },
 });

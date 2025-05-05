@@ -25,7 +25,7 @@ import url from "@/constants/url.json";
 import ModalRounded from "@/components/ModalRounded";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Google from "expo-auth-session/providers/google";
-
+import Background from "@/components/Background";
 const { width, height } = Dimensions.get("window");
 
 const ChooseLogin: React.FC = () => {
@@ -159,118 +159,137 @@ const ChooseLogin: React.FC = () => {
 
   return (
     <>
-      <StatusBar style="light" backgroundColor="#000000" />
-      <ImageBackground
-        source={require("../../../assets/images/backgroundLogin.png")}
-        style={styles.background}
-      >
+      <Background>
         <View style={styles.overlay}>
           <Logo existsDerechos={false} />
           <SvgContainer>
-            <Text
-              style={{
-                color: "white",
-                fontFamily: "Inter-ExtraLightItalic",
-                fontSize: 28,
-                marginTop: "9%",
-                position: "absolute",
-                top: 0,
-                textAlign: "center",
-                width: "100%",
-              }}
-            >
-              {" "}
-              Elige un metodo{"\n"}de inicio de sesion
-            </Text>
             <View
               style={{
-                position: "absolute",
-                bottom: "12%",
-                width: "80%",
+                width: "100%",
+                height: "100%",
                 alignItems: "center",
-                justifyContent: "space-between",
-                flexDirection: "column",
-                height: "50%",
-                paddingVertical: 20,
+                justifyContent: "center",
               }}
             >
-              <GoogleLoginButton onPress={() => promptAsync()} />
+              <Text
+                style={{
+                  color: "white",
+                  fontFamily: "Inter-Bold",
+                  fontSize: 28,
+                  textAlign: "center",
+                  position: "absolute",
+                  top: "0%",
+                  width: "100%",
+                }}
+              >
+                {" "}
+                Elige un método de {"\n"} inicio
+              </Text>
               <View
                 style={{
-                  width: "100%",
-                  height: "40%",
-                  marginTop: "14%",
-                  paddingHorizontal: 10,
-                  flexDirection: "row",
+                  width: "80%",
+                  alignItems: "center",
                   justifyContent: "space-between",
-                  alignItems: "center",
+                  flexDirection: "column",
+                  height: "50%",
+                  marginTop: "15%",
+                  paddingVertical: 20,
                 }}
               >
-                <Image source={require("../../../assets/images/line.png")} />
-                <Text
-                  style={{
-                    color: "white",
-                    fontSize: 24,
-                    fontFamily: "Inter-ExtraLightItalic",
-                    position: "absolute",
-                    top: 0,
-                    marginHorizontal: "5%",
-                    marginVertical: "2%",
-                    textAlign: "center",
-                    width: "100%",
-                  }}
-                >
-                  O{" "}
-                </Text>
-                <Image source={require("../../../assets/images/line.png")} />
-              </View>
-
-              <TouchableOpacity
-                onPress={() => {
-                  router.push({
-                    pathname: "/screens/Account/Login",
-                  });
-                }}
-                style={{
-                  borderRadius: 45,
-                  marginVertical: 10,
-                  paddingHorizontal: 10,
-                  justifyContent: "space-around",
-                  alignItems: "center",
-                  flexDirection: "row",
-                  borderWidth: 1,
-                  height: height * 0.055,
-                  backgroundColor: "#ffffff",
-                }}
-              >
+                <GoogleLoginButton onPress={() => promptAsync()} />
                 <View
                   style={{
-                    width: "12%",
-                    justifyContent: "center",
+                    width: "100%",
+                    height: "40%",
+                    marginTop: "15%",
+                    paddingHorizontal: 10,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
                     alignItems: "center",
+                    position: "relative",
                   }}
                 >
                   <Image
-                    source={require("@/assets/images/phone.png")}
+                    source={require("../../../assets/images/line.png")}
                     style={{
-                      resizeMode: "contain",
-                      width: "90%",
-                      height: "90%",
+                      height: 2,
+                      alignSelf: "center",
+                    }}
+                  />
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 24,
+                      fontFamily: "Inter-ExtraLightItalic",
+                      marginHorizontal: 10,
+                      textAlign: "center",
+                    }}
+                  >
+                    O
+                  </Text>
+                  <Image
+                    source={require("../../../assets/images/line.png")}
+                    style={{
+                      height: 2,
+                      alignSelf: "center",
                     }}
                   />
                 </View>
 
-                <Text
+                <TouchableOpacity
+                  onPress={() => {
+                    router.push({
+                      pathname: "/screens/Account/Login",
+                    });
+                  }}
                   style={{
-                    color: "black",
-                    fontSize: width * 0.04, // Proportional font size based on screen width
-                    padding: 8,
-                    fontFamily: "Roboto-Medium",
+                    marginTop: "5%",
+                    backgroundColor: "#6438D7", // Color principal
+                    borderColor: "#321c6b", // Color del borde
+                    borderRadius: 15,
+                    borderBottomWidth: 5,
+                    borderRightWidth: 5,
+                    shadowRadius: 5,
+                    elevation: 5, // Sombra en Android
+                    marginVertical: 10,
+                    paddingHorizontal: 10,
+                    justifyContent: "space-around",
+                    alignItems: "center",
+                    flexDirection: "row",
+                    height: height * 0.06,
+                    width: "92%", // Ensure the button width is responsive
+                    alignSelf: "center", // Center the button horizontally
                   }}
                 >
-                  Numero de telefono
-                </Text>
-              </TouchableOpacity>
+                  <View
+                    style={{
+                      width: "16%",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Image
+                      source={require("@/assets/images/phone.png")}
+                      style={{
+                        resizeMode: "contain",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+                  </View>
+
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 18,
+                      textAlign: "center", // Center the text
+                      fontFamily: "Inter-Light",
+                    }}
+                  >
+                    Iniciar con teléfono
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </SvgContainer>
           <ModalRounded
@@ -282,7 +301,7 @@ const ChooseLogin: React.FC = () => {
             }}
           />
         </View>
-      </ImageBackground>
+      </Background>
     </>
   );
 };

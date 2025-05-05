@@ -19,6 +19,9 @@ import url from "@/constants/url.json";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { jwtDecode } from "jwt-decode";
+import Background from "@/components/Background";
+import { Dimensions } from "react-native";
+const { width, height } = Dimensions.get("window");
 const Password = () => {
   const { username, phoneNumber, nombre, fecha } = useLocalSearchParams();
   const [isModalRoundedVisible, setModalRoundedVisible] =
@@ -72,16 +75,12 @@ const Password = () => {
       });
       if (response.status === 201) {
         console.log("User registered successfully:", response.data);
-        setModalRoundedText("Usuario registrado con exito");
-        setModalTextButton("Gracias!!");
-        setModalRoundedVisible(true);
-        const accessToken = response.data.access_token;
-        await AsyncStorage.setItem("access_token", accessToken);
-        const decodedToken = jwtDecode<DecodedToken>(accessToken);
-
         await AsyncStorage.setItem("access_token", response.data.access_token);
-        setModalRoundedText("Bienvenido, " + decodedToken.sub.user + "!");
-        router.push("/(tabs)/profile");
+        setTimeout(() => {
+          router.replace({
+            pathname: "/(tabs)/home",
+          });
+        }, 2000);
       }
     } catch (error) {
       console.error(
@@ -120,86 +119,123 @@ const Password = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("../../../assets/images/backgroundLogin.png")}
-      style={styles.background}
-    >
+    <Background>
       <View style={styles.overlay}>
         <Logo existsDerechos={false} />
         <SvgContainer>
-          <Text
-            style={[
-              styles.label,
-              {
-                marginTop: "8%",
-              },
-            ]}
+          <View
+            style={{
+              width: "90%",
+              height: height * 0.32,
+              justifyContent: "center",
+              alignItems: "center",
+              position: "absolute",
+              top: "0%",
+            }}
           >
-            Crea tu contraseña
-          </Text>
-          <View style={styles.cajainput}>
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor="#aaa"
-              secureTextEntry={isPasswordVisible}
-              value={password}
-              onChangeText={setPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              onPress={togglePasswordVisibility}
-              style={styles.showPassword}
+            <Text
+              style={[
+                styles.label,
+                {
+                  marginTop: "8%",
+                },
+              ]}
             >
-              <Image
-                style={styles.iconpass}
-                source={
-                  currentIcon === "closed"
-                    ? require("../../../assets/images/closed.png")
-                    : require("../../../assets/images/eye.png")
-                }
+              Crea tu contraseña
+            </Text>
+            <View style={styles.cajainput}>
+              <TextInput
+                style={styles.input}
+                placeholder="Contraseña"
+                placeholderTextColor="#aaa"
+                secureTextEntry={isPasswordVisible}
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
               />
-            </TouchableOpacity>
-          </View>
-
-          <Text
-            style={[
-              styles.label,
-              {
-                marginTop: "2%",
-              },
-            ]}
-          >
-            Confirma tu contraseña
-          </Text>
-          <View style={styles.cajainput}>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirmar contraseña"
-              secureTextEntry={isPasswordConfirmVisible}
-              placeholderTextColor="#aaa"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              autoCapitalize="none"
-            />
-            <TouchableOpacity
-              onPress={togglePasswordConfirmVisibility}
-              style={styles.showPassword}
+              <TouchableOpacity
+                onPress={togglePasswordVisibility}
+                style={styles.showPassword}
+              >
+                <Image
+                  style={styles.iconpass}
+                  source={
+                    currentIcon === "closed"
+                      ? require("../../../assets/images/closed.png")
+                      : require("../../../assets/images/eye.png")
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+            <Text
+              style={[
+                styles.label,
+                {
+                  marginTop: "2%",
+                },
+              ]}
             >
-              <Image
-                style={styles.iconpass}
-                source={
-                  currentConfirmIcon === "closed"
-                    ? require("../../../assets/images/closed.png")
-                    : require("../../../assets/images/eye.png")
-                }
+              Confirma tu contraseña
+            </Text>
+            <View style={[styles.cajainput, { marginBottom: "5%" }]}>
+              <TextInput
+                style={styles.input}
+                placeholder="Confirmar contraseña"
+                secureTextEntry={isPasswordConfirmVisible}
+                placeholderTextColor="#aaa"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                autoCapitalize="none"
               />
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={togglePasswordConfirmVisibility}
+                style={styles.showPassword}
+              >
+                <Image
+                  style={styles.iconpass}
+                  source={
+                    currentConfirmIcon === "closed"
+                      ? require("../../../assets/images/closed.png")
+                      : require("../../../assets/images/eye.png")
+                  }
+                />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                handleSubmit();
+              }}
+              style={{
+                marginTop: "5%",
+                backgroundColor: "#6438D7", // Color principal
+                borderColor: "#321c6b", // Color del borde
+                borderRadius: 15,
+                borderBottomWidth: 5,
+                borderRightWidth: 5,
+                shadowRadius: 5,
+                elevation: 5, // Sombra en Android
+                marginVertical: 10,
+                paddingHorizontal: 10,
+                justifyContent: "space-around",
+                alignItems: "center",
+                flexDirection: "row",
+                height: height * 0.06,
+                width: "40%", // Ensure the button width is responsive
+                alignSelf: "center", // Center the button horizontally
+              }}
+            >
+              <Text
+                style={{
+                  color: "white",
+                  fontSize: 18,
+                  textAlign: "center", // Center the text
+                  fontFamily: "Inter-Light",
+                }}
+              >
+                Continuar
+              </Text>
+            </TouchableOpacity>{" "}
           </View>
-
-          <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-            <Text style={styles.buttonText}>Continuar</Text>
-          </TouchableOpacity>
         </SvgContainer>
         <ModalRounded
           text={modalRoundedText}
@@ -210,7 +246,7 @@ const Password = () => {
           }}
         />
       </View>
-    </ImageBackground>
+    </Background>
   );
 };
 

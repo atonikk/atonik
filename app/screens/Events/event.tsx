@@ -45,7 +45,7 @@ export default function Tab() {
         const decodedToken = jwtDecode<DecodedToken>(token);
 
         // Hacer algo con el token decodificado
-    
+
         setUsername(decodedToken.sub.user);
         return decodedToken.sub.user;
       } else {
@@ -98,11 +98,11 @@ export default function Tab() {
       switch (response.status) {
         case 200:
           // Respuesta exitosa
-        
+
           break;
         case 201:
           // Recurso creado con éxito
-      
+
           break;
         case 422:
           setIsin(false);
@@ -293,7 +293,7 @@ export default function Tab() {
             >
               Ubicación
             </Text>
-            <MapView
+            {/* <MapView
               style={styles.map}
               initialRegion={{
                 latitude: parseFloat(event.latitude), // Plaza de Bolívar latitude
@@ -311,7 +311,7 @@ export default function Tab() {
                 strokeColor={event.colors[1]}
                 fillColor={hexToRgb(event.colors[0], 0.3)}
               />
-            </MapView>
+            </MapView> */}
           </View>
         </LinearGradient>
       </ScrollView>

@@ -8,6 +8,7 @@ import {
   Alert,
   Image,
   Dimensions,
+  useColorScheme,
 } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
@@ -18,9 +19,17 @@ import { jwtDecode } from "jwt-decode"; // Asegúrate de que jwtDecode esté cor
 import { router } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
 import Panel from "@/components/panelPushUp";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
+import logoDark from "@/assets/images/logo.png";
+import logoLight from "@/assets/images/logoLight.png";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import Logo from "@/components/Logo";
+import { SafeAreaView } from "react-native-safe-area-context";
 SplashScreen.preventAutoHideAsync();
-
+const { height, width } = Dimensions.get("window");
 export default function Tab() {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
     Inter: require("../../assets/fonts/Inter-Regular.ttf"),
     "Inter-Bold": require("../../assets/fonts/InterDisplay-Bold.ttf"),
@@ -30,7 +39,6 @@ export default function Tab() {
   });
   const [isVisible, setIsVisible] = useState(false);
   const [is_organicer, setorganicer] = useState(false);
-
   const [pressed, setPressed] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [pressed2, setPressed2] = useState(false);
@@ -143,20 +151,58 @@ export default function Tab() {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.superior}>
+    <SafeAreaView
+      style={{ ...styles.container, backgroundColor: theme.colors.background }}
+    >
+      <SafeAreaView
+        style={{
+          position: "absolute",
+          top: "8%",
+          width: width,
+          height: height * 0.18,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Image
-          style={styles.logo}
-          source={require("../../assets/images/logo.png")}
+          style={[
+            styles.logo,
+            {
+              width: "40%",
+              height: "80%",
+            },
+          ]}
+          source={colorScheme === "dark" ? logoDark : logoLight}
         />
-        <View style={styles.divquieres}>
-          <Text style={styles.quieres}>¿Quieres crear tu propio</Text>
-          <Text style={styles.quieresbold}>evento?</Text>
-        </View>
-      </View>
+        <Text
+          style={{
+            color: colorScheme === "dark" ? "white" : theme.colors.primary,
+            fontFamily: "Inter-Black",
+            fontSize: 64,
+            textAlign: "center",
+          }}
+        >
+          AtoniK
+        </Text>
+      </SafeAreaView>
       <View style={styles.medio}>
-        <Text style={styles.text}>
-          Presiona el siguiente boton para habilitar el modo organizador
+        <View style={styles.divquieres}>
+          <Text style={{ ...styles.quieres, color: theme.colors.text }}>
+            ¿Quieres crear tu propio
+          </Text>
+          <Text style={{ ...styles.quieresbold, color: theme.colors.text }}>
+            evento?
+          </Text>
+        </View>
+        <Text
+          style={{
+            ...styles.text,
+            color: theme.colors.text, // Cambia el color del texto según el tema
+            fontFamily: "Inter-ExtraLight",
+          }}
+        >
+          Presiona el siguiente boton para contactarnos y habilitar el modo
+          organizador
         </Text>
         <Pressable
           style={[styles.quieroserbutton, pressed && styles.pressedButton]}
@@ -169,12 +215,12 @@ export default function Tab() {
         </Pressable>
       </View>
       <View style={styles.inferior}>
-        <Text style={styles.textlargo}>
+        <Text style={{ ...styles.textlargo, color: theme.colors.text }}>
           "Al presionar en el botón superior, estás de acuerdo con los términos
           y condiciones aplicables al año en curso."
         </Text>
         <Pressable
-          style={[styles.quieroserbutton2, pressed2 && styles.pressedButton2]}
+          style={[styles.quieroserbutton, pressed && styles.pressedButton]}
           onPressIn={() => setPressed2(true)}
           onPressOut={() => setPressed2(false)}
           onPress={handlePress}
@@ -189,7 +235,7 @@ export default function Tab() {
         togglePanel={togglePanel}
         closePanel={closePanel}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -198,31 +244,27 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     flex: 1,
+    paddingBottom: height * 0.01,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#131313",
   },
   superior: {
     alignItems: "center",
-    top: 0,
     position: "absolute",
-    height: "30%",
+    height: "25%",
     width: "100%",
-    marginTop: "5%",
+    backgroundColor: "red",
   },
   logo: {
-    top: "10%",
-    width: 60,
-    height: 60,
+    resizeMode: "contain",
   },
   divquieres: {
-    marginTop: "10%",
+    marginBottom: "10%",
     justifyContent: "center",
     alignItems: "center",
     width: "100%",
   },
   quieres: {
-    color: "white",
     textAlign: "center",
     fontFamily: "Inter",
     fontSize: 30,
@@ -237,11 +279,11 @@ const styles = StyleSheet.create({
   },
   medio: {
     alignItems: "center",
+    marginTop: "8%",
     height: "30%",
     width: "100%",
     position: "absolute",
-    top: "35%",
-    padding: "3%",
+    top: "28%",
   },
   text: {
     lineHeight: 30,
@@ -254,22 +296,21 @@ const styles = StyleSheet.create({
     marginBottom: "5%",
   },
   quieroserbutton: {
-    position: "absolute",
-    top: Dimensions.get("window").width > 375 ? "60%" : "45%",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "60%",
-    height: "38%",
-    backgroundColor: "#722D86", // Color principal
+    marginTop: "5%",
+    backgroundColor: "#6438D7", // Color principal
+    borderColor: "#321c6b", // Color del borde
     borderRadius: 15,
-    borderColor: "#430857", // Borde más oscuro
     borderBottomWidth: 5,
     borderRightWidth: 5,
-    shadowColor: "#5E0D75", // Añade sombra
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5, // Sombra en Android
+    marginVertical: 10,
+    paddingHorizontal: 10,
+    justifyContent: "space-around",
+    alignItems: "center",
+    height: height * 0.08,
+    width: "60%", // Ensure the button width is responsive
+    alignSelf: "center", // Center the button horizontally
   },
   pressedButton: {
     backgroundColor: "#430857", // Color más oscuro al presionar
@@ -299,7 +340,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "35%",
     position: "absolute",
-    top: "67%",
+    top: "70%",
     padding: "3%",
   },
   buttontextboldinferior: {

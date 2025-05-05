@@ -34,14 +34,11 @@ const styles = StyleSheet.create({
     height: height * 0.065,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#722D86", // Color principal
+    backgroundColor: "#6438D7", // Color principal
+    borderColor: "#321c6b", // Color del borde
     borderRadius: 15,
-    borderColor: "#430857", // Borde más oscuro
     borderBottomWidth: 5,
     borderRightWidth: 5,
-    shadowColor: "#5E0D75", // Añade sombra
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
     shadowRadius: 5,
     elevation: 5, // Sombra en Android
   },

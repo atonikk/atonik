@@ -76,10 +76,10 @@ export default function Panel({ isVisible, togglePanel, closePanel }) {
 const styles = StyleSheet.create({
   panel: {
     position: "absolute",
-    bottom: 0,
+    bottom: 45,
     left: 0,
     right: 0,
-    height: 300,
+    height: 250,
     backgroundColor: "#1f1e1e",
     justifyContent: "center",
     alignItems: "center",
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     width: "13%",
     borderRadius: 30,
     height: 7,
-    marginTop: "7%",
+    marginTop: "2%",
     backgroundColor: "#353434",
   },
   panelImage: {

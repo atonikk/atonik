@@ -11,6 +11,7 @@ import {
   ImageBackground,
   Image,
 } from "react-native";
+import Background from "@/components/Background";
 import Svg, { Path } from "react-native-svg";
 import { useNavigation, router } from "expo-router";
 import CustomModal from "@/components/modalAlert";
@@ -24,6 +25,8 @@ import { InteractionManager } from "react-native";
 import * as Google from "expo-auth-session/providers/google";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
+import { jwtDecode } from "jwt-decode";
 const { width, height } = Dimensions.get("window");
 interface User {
   email: string;
@@ -34,8 +37,13 @@ interface User {
   photo: string;
 }
 const Register: React.FC = () => {
+  const profilePhoto = useProfilePhotoStore((state) => state.profilePhoto);
+  const setProfilePhoto = useProfilePhotoStore(
+    (state) => state.setProfilePhoto
+  );
   const [fontsLoaded] = useFonts({
-    "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
+    "Inter-Light": require("@/assets/fonts/Inter/Inter-Light.ttf"),
+    "Inter-Bold": require("@/assets/fonts/Inter/Inter-Bold.ttf"),
     "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
   });
   const [params, setParams] = useState<User>();
@@ -104,60 +112,6 @@ const Register: React.FC = () => {
       params: { email, familyName, givenName, id, name, photo },
     });
   };
-  // const handleGoogleSignIn = async () => {
-  //   try {
-  //     await GoogleSignin.signOut();
-  //     console.log("Sesión cerrada");
-  //     await GoogleSignin.hasPlayServices();
-  //     const response = await GoogleSignin.signIn();
-  //     if (isSuccessResponse(response)) {
-  //       const { idToken, user } = response.data;
-  //       const { email, familyName, givenName, id, name, photo } = user;
-
-  //       if (isSuccessResponse(response)) {
-  //         const { idToken, user } = response.data;
-  //         const { email, familyName, givenName, id, name, photo } = user;
-
-  //         console.log("✅ Datos obtenidos:", user);
-
-  //         // Esperar a que terminen las interacciones (modal de Google)
-  //         InteractionManager.runAfterInteractions(() => {
-  //           // Aquí haces navegación o renderizas
-  //           router.push({
-  //             pathname: "/screens/Account/UserGoogle",
-  //             params: { email, familyName, givenName, id, name, photo },
-  //           });
-  //         });
-  //       }
-  //     } else {
-  //       console.log("El usuario cancelo el inicio de sesion");
-  //     }
-  //   } catch (error) {
-  //     if (isErrorWithCode(error)) {
-  //       switch (error.code) {
-  //         case statusCodes.IN_PROGRESS:
-  //           setMessage("El inicio de sesión ya está en progreso");
-  //           console.log("El inicio de sesión ya está en progreso");
-  //           break;
-  //         case statusCodes.PLAY_SERVICES_NOT_AVAILABLE:
-  //           setMessage("Los servicios de Google Play no están disponibles");
-  //           console.log("Los servicios de Google Play no están disponibles");
-  //           break;
-  //         case statusCodes.SIGN_IN_CANCELLED:
-  //           setMessage("El usuario canceló el inicio de sesión");
-  //           console.log("El usuario canceló el inicio de sesión");
-  //           break;
-  //         case statusCodes.SIGN_IN_REQUIRED:
-  //           setMessage("Se requiere inicio de sesión");
-  //           console.log("Se requiere inicio de sesión");
-  //           break;
-  //         default:
-  //           console.log("Error desconocido: ", error.message);
-  //       }
-  //     } else {
-  //       console.log("Error: ", error.message);
-  //     }
-  //   }
   const navigation = useNavigation();
   const [Number, setNumber] = useState<string>("");
   const [Nombre, setNombre] = useState<string>("");
@@ -206,6 +160,8 @@ const Register: React.FC = () => {
       if (response.status === 200) {
         console.log("Usuario encontrado en la base de datos");
         await AsyncStorage.setItem("access_token", response.data.access_token);
+        const decodedToken = jwtDecode(response.data.access_token);
+        setProfilePhoto(decodedToken.sub.profile_photo);
         router.replace({
           pathname: "/(tabs)/home",
         });
@@ -238,8 +194,17 @@ const Register: React.FC = () => {
     if (response?.type === "success") {
       console.log("Usuario loggeado");
       setTimeout(() => {
-        const decodedToken = JSON.parse(atob(response.params.id_token.split('.')[1]));
-        const { email, family_name: familyName, given_name: givenName, sub: id, name, picture: photo } = decodedToken;
+        const decodedToken = JSON.parse(
+          atob(response.params.id_token.split(".")[1])
+        );
+        const {
+          email,
+          family_name: familyName,
+          given_name: givenName,
+          sub: id,
+          name,
+          picture: photo,
+        } = decodedToken;
         console.log("Datos de usuario:", response.params);
         checkUser(
           email,
@@ -254,34 +219,36 @@ const Register: React.FC = () => {
     }
   }, [response]);
   return (
-    <>
+    <Background>
       <StatusBar style="light" backgroundColor="#000000" />
-      <ImageBackground
-        source={require("../../../assets/images/backgroundLogin.png")}
-        style={styles.background}
-      >
-        <View style={styles.overlay}>
-          <Logo existsDerechos={false} />
-          <SvgContainer>
+      <View style={styles.overlay}>
+        <Logo existsDerechos={false} />
+        <SvgContainer>
+          <View
+            style={{
+              width: "100%",
+              height: "100%",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Text
               style={{
                 color: "white",
-                fontFamily: "Inter-ExtraLightItalic",
+                fontFamily: "Inter-Bold",
                 fontSize: 28,
-                marginTop: "9%",
-                position: "absolute",
-                top: 0,
                 textAlign: "center",
+                position: "absolute",
+                top: "5%",
                 width: "100%",
               }}
             >
               {" "}
-              Elige un metodo{"\n"}de registro
+              Elige un método de {"\n"} registro
             </Text>
             <View
               style={{
-                position: "absolute",
-                bottom: "12%",
+                marginTop: "30%",
                 width: "80%",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -299,31 +266,39 @@ const Register: React.FC = () => {
                 style={{
                   width: "100%",
                   height: "40%",
-                  marginTop: "14%",
+                  marginTop: "15%",
                   paddingHorizontal: 10,
                   flexDirection: "row",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  position: "relative",
                 }}
               >
-                <Image source={require("../../../assets/images/line.png")} />
+                <Image
+                  source={require("../../../assets/images/line.png")}
+                  style={{
+                    height: 2,
+                    alignSelf: "center",
+                  }}
+                />
                 <Text
                   style={{
                     color: "white",
                     fontSize: 24,
                     fontFamily: "Inter-ExtraLightItalic",
-                    position: "absolute",
-
-                    top: 0,
-                    marginHorizontal: "5%",
-                    marginVertical: "2%",
+                    marginHorizontal: 10,
                     textAlign: "center",
-                    width: "100%",
                   }}
                 >
-                  O{" "}
+                  O
                 </Text>
-                <Image source={require("../../../assets/images/line.png")} />
+                <Image
+                  source={require("../../../assets/images/line.png")}
+                  style={{
+                    height: 2,
+                    alignSelf: "center",
+                  }}
+                />
               </View>
 
               <TouchableOpacity
@@ -333,20 +308,27 @@ const Register: React.FC = () => {
                   });
                 }}
                 style={{
-                  borderRadius: 45,
+                  marginTop: "5%",
+                  backgroundColor: "#6438D7", // Color principal
+                  borderColor: "#321c6b", // Color del borde
+                  borderRadius: 15,
+                  borderBottomWidth: 5,
+                  borderRightWidth: 5,
+                  shadowRadius: 5,
+                  elevation: 5, // Sombra en Android
                   marginVertical: 10,
                   paddingHorizontal: 10,
                   justifyContent: "space-around",
                   alignItems: "center",
                   flexDirection: "row",
-                  borderWidth: 1,
-                  height: height * 0.055,
-                  backgroundColor: "#ffffff",
+                  height: height * 0.06,
+                  width: "92%", // Ensure the button width is responsive
+                  alignSelf: "center", // Center the button horizontally
                 }}
               >
                 <View
                   style={{
-                    width: "12%",
+                    width: "15%",
                     justifyContent: "center",
                     alignItems: "center",
                   }}
@@ -363,20 +345,20 @@ const Register: React.FC = () => {
 
                 <Text
                   style={{
-                    color: "black",
-                    fontSize: width * 0.04, // Proportional font size based on screen width
-                    padding: 8,
-                    fontFamily: "Roboto-Medium",
+                    color: "white",
+                    fontSize: 18,
+                    textAlign: "center", // Center the text
+                    fontFamily: "Inter-Light",
                   }}
                 >
-                  Registrate con telefono
+                  Regístrate con teléfono
                 </Text>
               </TouchableOpacity>
             </View>
-          </SvgContainer>
-        </View>
-      </ImageBackground>
-    </>
+          </View>
+        </SvgContainer>
+      </View>
+    </Background>
   );
 };
 
@@ -429,11 +411,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   overlay: {
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
+    flex: 1,
     justifyContent: "center",
-    position: "relative",
+    alignItems: "center",
   },
   logo: {
     width: "70%",

@@ -8,19 +8,21 @@ import {
   Keyboard,
 } from "react-native";
 import React, { useState, useEffect } from "react";
-import logo from "@/assets/images/logo.png";
+import logoDark from "@/assets/images/logo.png";
+import logoLight from "@/assets/images/logoLight.png";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFonts } from "expo-font";
 import { Dimensions } from "react-native";
-
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useColorScheme } from "react-native";
 const { width, height } = Dimensions.get("window");
 
 const Logo = ({ existsDerechos }: { existsDerechos: boolean }) => {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
-    "Inter-ExtraLightItalic": require("@/assets/fonts/Inter-4.0/extras/ttf/InterDisplay-ExtraLightItalic.ttf"),
-    "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
-    "LexenTera-Medium": require("@/assets/fonts/LexendTera-Medium.ttf"),
-    "Koho-BoldItalic": require("@/assets/fonts/KoHo-BoldItalic.ttf"),
+    "Inter-Black": require("@/assets/fonts/Inter/Inter-Black.ttf"),
+    "Inter-Bold": require("@/assets/fonts/Inter/InterBold.ttf"),
   });
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -49,44 +51,28 @@ const Logo = ({ existsDerechos }: { existsDerechos: boolean }) => {
     <SafeAreaView
       style={{
         position: "absolute",
-        top: keyboardVisible ? "2%" : "4%",
-        width: "80%",
-        height: keyboardVisible ? height * 0.2 : height * 0.3,
+        top: keyboardVisible ? "2%" : "10%",
+        width: width,
+        height: keyboardVisible ? height * 0.18 : height * 0.25,
         alignItems: "center",
-        alignContent: "space-around",
+        justifyContent: "center",
+        paddingHorizontal: width * 0.05, // Add padding for responsiveness
       }}
     >
-      {existsDerechos && (
-        <Text
-          style={{
-            color: "white",
-            fontFamily: "LexenTera-Medium",
-            fontSize: 24,
-            textAlign: "center",
-            position: "absolute",
-            top: "0%",
-            justifyContent: "center",
-            alignSelf: "center",
-          }}
-        >
-          DERECHOS{"\n"}RESERVADOS
-        </Text>
-      )}
       <Image
         style={[
           styles.logo,
           {
-            width: keyboardVisible ? "60%" : "80%",
+            width: keyboardVisible ? "60%" : "40%",
             height: keyboardVisible ? "60%" : "80%",
-
           },
         ]}
-        source={logo}
+        source={colorScheme === "dark" ? logoDark : logoLight}
       />
       <Text
         style={{
-          color: "#FFFFFF",
-          fontFamily: "Koho-BoldItalic",
+          color: colorScheme === "dark" ? "white" : theme.colors.primary,
+          fontFamily: "Inter-Black",
           fontSize: keyboardVisible ? 48 : 64,
           textAlign: "center",
         }}

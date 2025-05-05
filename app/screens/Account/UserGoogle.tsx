@@ -20,7 +20,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import ModalRounded from "@/components/ModalRounded";
 import { Dimensions } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import Background from "@/components/Background";
 const { width, height } = Dimensions.get("window");
 const UserGoogle = () => {
   const { email, familyName, givenName, id, name, photo } =
@@ -31,7 +31,7 @@ const UserGoogle = () => {
   const [modalRoundedText, setModalRoundedText] = useState<string>("");
   const [modalTextButton, setModalTextButton] = useState<string>("");
   useEffect(() => {
-    console.log("Entrando a usergoogle")
+    console.log("Entrando a usergoogle");
     console.log("Email:", email);
     console.log("Family Name:", familyName);
     console.log("Given Name:", givenName);
@@ -123,20 +123,9 @@ const UserGoogle = () => {
     return null;
   }
   return (
-    <View
-      style={{
-        height: "100%",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#131313", // Asegura que el fondo sea oscuro siempre
-      }}
-    >
+    <Background>
       <StatusBar style="light" backgroundColor="#000000" />
-      {/* <ImageBackground
-          source={require("../../../assets/images/backgroundLogin.png")}
-          style={styles.background}
-        > */}
+
       <View style={styles.overlay}>
         <Logo existsDerechos={false} />
         <SvgContainer>
@@ -146,8 +135,7 @@ const UserGoogle = () => {
               height: "90%",
               justifyContent: "center",
               alignItems: "center",
-              position: "absolute",
-              top: "0%",
+              marginTop: "15%",
             }}
           >
             <Text
@@ -155,7 +143,7 @@ const UserGoogle = () => {
                 color: "white",
                 fontFamily: "Inter-ExtraLightItalic",
                 fontSize: 28,
-                marginTop: "9%",
+                marginTop: "0%",
                 textAlign: "center",
                 width: "100%",
               }}
@@ -209,8 +197,7 @@ const UserGoogle = () => {
           setModalRoundedVisible(false);
         }}
       />
-      {/* </ImageBackground> */}
-    </View>
+    </Background>
   );
 };
 
