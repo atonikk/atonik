@@ -26,7 +26,7 @@ export default function Tab() {
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("Usuarios");
+  const [activeTab, setActiveTab] = useState("Eventos");
   const [keyword, setKeyword] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [events, setEvents] = useState<Event[]>([]);

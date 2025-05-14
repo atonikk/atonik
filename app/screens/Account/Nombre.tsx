@@ -28,6 +28,7 @@ const Nombre = () => {
   enableScreens(false);
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
+  const [email, setEmail] = useState<string>("");
   const { username, phoneNumber } = useLocalSearchParams();
   const [nombre, setNombre] = useState<string>("");
   const [isModalRoundedVisible, setModalRoundedVisible] =
@@ -48,12 +49,19 @@ const Nombre = () => {
       setModalRoundedVisible(true);
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setModalRoundedText("Por favor, ingresa un correo electrónico válido");
+      setModalTextButton("Entendido");
+      setModalRoundedVisible(true);
+      return;
+    }
     console.log("Nombre:", nombre);
     console.log("Telefono:", phoneNumber);
     console.log("Username:", username);
     router.push({
       pathname: "/screens/Account/Edad",
       params: {
+        email: email,
         phoneNumber: phoneNumber,
         username: username,
         nombre: nombre,
@@ -66,10 +74,7 @@ const Nombre = () => {
   return (
     <Background>
       <StatusBar style="light" backgroundColor="#000000" />
-      {/* <ImageBackground
-          source={require("../../../assets/images/backgroundLogin.png")}
-          style={styles.background}
-        > */}
+
       <View style={styles.overlay}>
         <Logo existsDerechos={false} />
         <SvgContainer>
@@ -80,17 +85,16 @@ const Nombre = () => {
               justifyContent: "center",
               alignItems: "center",
               position: "absolute",
-              top: "0%",
+              top: "15%",
             }}
           >
             <Text
               style={{
                 color: "white",
                 fontFamily: "Inter-ExtraLightItalic",
-                fontSize: 28,
+                fontSize: 24,
                 textAlign: "center",
                 width: "100%",
-                marginBottom: "7%",
               }}
             >
               {" "}
@@ -99,15 +103,15 @@ const Nombre = () => {
             <TextInput
               style={{
                 width: "100%",
-                height: "20%",
+                height: "15%",
                 borderBottomWidth: 1,
                 borderBottomColor: "#FFFFFF",
                 fontFamily: "Inter-ExtraLightItalic",
                 borderRadius: 20,
                 textAlign: "center",
+                marginBottom: "12%",
                 fontSize: 24,
                 color: "white",
-                marginBottom: "15%",
               }}
               value={nombre}
               onChangeText={(text) => setNombre(text)}
@@ -124,12 +128,57 @@ const Nombre = () => {
               textContentType="username"
               keyboardType="default"
               placeholder="Ej: Juan Perez"
-              placeholderTextColor="#FFFFFF"
+              placeholderTextColor="#494848"
               autoCapitalize="words"
+            />
+            <Text
+              style={{
+                color: "white",
+                fontFamily: "Inter-ExtraLightItalic",
+                fontSize: 24,
+                textAlign: "center",
+                width: "100%",
+              }}
+            >
+              {" "}
+              Escribe tu correo electronico
+            </Text>
+            <TextInput
+              style={{
+                width: "100%",
+                height: "20%",
+                borderBottomWidth: 1,
+                borderBottomColor: "#FFFFFF",
+                fontFamily: "Inter-ExtraLightItalic",
+                borderRadius: 20,
+                textAlign: "center",
+                fontSize: 24,
+                color: "white",
+                marginBottom: "15%",
+              }}
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+              maxLength={50}
+              autoCorrect={false}
+              autoComplete="email"
+              autoFocus={false}
+              returnKeyType="next"
+              onSubmitEditing={() => {
+                goToNextStep();
+              }}
+              blurOnSubmit={false}
+              enablesReturnKeyAutomatically={true}
+              textContentType="emailAddress"
+              keyboardType="email-address"
+              placeholder="Ej: correo@ejemplo.com"
+              placeholderTextColor="#494848"
+              autoCapitalize="none"
             />
             <BotonRegister
               textboton="Continuar"
               onPress={() => goToNextStep()}
+              width={width * 0.4}
+              height={height * 0.06}
             />
           </View>
         </SvgContainer>
@@ -142,7 +191,6 @@ const Nombre = () => {
           setModalRoundedVisible(false);
         }}
       />
-      {/* </ImageBackground> */}
     </Background>
   );
 };

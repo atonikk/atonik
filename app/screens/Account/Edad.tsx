@@ -41,7 +41,7 @@ const Edad: React.FC = () => {
   const [modalTextButton, setModalTextButton] = useState("");
 
   const navigation = useNavigation();
-  const { username, phoneNumber, nombre } = useLocalSearchParams();
+  const { username, phoneNumber, nombre, email } = useLocalSearchParams();
   const [Fecha, setFecha] = useState<Date | undefined>(undefined);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [tempDate, setTempDate] = useState(new Date()); // Para manejar la fecha temporalmente
@@ -126,6 +126,7 @@ const Edad: React.FC = () => {
       pathname: "/screens/Account/Password",
       params: {
         username: username,
+        email: email,
         phoneNumber: phoneNumber,
         nombre: nombre,
         fecha: fecha as string,

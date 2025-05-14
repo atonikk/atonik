@@ -26,9 +26,7 @@ export default function Home() {
       {isConnected ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {/* Carrousel con animación */}
-          <Animated.View entering={FadeInUp.duration(600)} style={styles.carrouselContainer}>
-            <Carrousel />
-          </Animated.View>
+ 
 
           {/* Selector de fecha con animación */}
           <Animated.View entering={FadeInUp.duration(700)}>

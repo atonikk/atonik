@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, {useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,28 +7,37 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
+
   ActivityIndicator,
 } from "react-native";
 import { useWindowDimensions } from "react-native";
+import { useLocalSearchParams } from 'expo-router';
+
 import Constants from "expo-constants";
+import { useWompiStore } from "@/app/utils/wompiStore";
 const statusBarHeight = Constants.statusBarHeight;
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "@react-navigation/native";
+import SkeletonContent from 'react-native-skeleton-content';
 import ProgressStepsBar from "@/components/progressIndicators/progressStepsBar";
 import { useRouter } from "expo-router";
 import { useAppTheme } from "@/constants/theme/useTheme";
 import { useColorScheme } from "react-native";
-
+import url from "@/constants/url.json";
+import ConsentCheckboxes from '@/components/payment/TermsChecks'
 export default function MetodoPago() {
+  const { eventId, price, eventName, quantity } = useLocalSearchParams();
+
+  const { setWompiData } = useWompiStore();
+  const [wompiData1, setWompiData1] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<"card" | "nequi">("card");
-  const [isReady, setIsReady] = useState(false);
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
+  
   const { width, height } = useWindowDimensions();
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-
+  const [checks, setChecks] = useState({ checked1: false, checked2: false });
   const logoSource =
     colorScheme === "dark"
       ? require("../../../assets/images/nequiLogo.png")
@@ -36,14 +45,43 @@ export default function MetodoPago() {
 
   const handleNext = () => {
     if (selected === "card") {
-      router.push("screens/Payment/Card");
+      console.log("eventId type:", typeof eventId);
+console.log("eventId value:", eventId);
+      router.push({
+        
+        pathname: '/screens/Payment/Card',
+        params: {
+          eventId:eventId,
+          eventName: eventName,
+          price: price,
+          quantity:quantity,
+        },
+      });
     } else {
       router.push("/screens/Payment/NequiForm");
     }
   };
 
   const styles = getStyles(theme, width, height, statusBarHeight);
+  const isDisabled = !(checks.checked1 && checks.checked2);
+  useEffect(() => {
+    const fetchWompiData = async () => {
+      try {
+        const response = await fetch(`${url.url}/wompi/presigned_acceptance`);
+        const data = await response.json();
+        setWompiData(data);
+        setWompiData1(data);
+      } catch (error) {
+        console.error('Error al obtener datos de Wompi:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchWompiData();
+  }, []);
+
+ 
   return (
     <SafeAreaView
       style={{
@@ -110,6 +148,12 @@ export default function MetodoPago() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <ConsentCheckboxes
+   regulationLink={wompiData1?.presigned_acceptance?.permalink}
+   privacyLink={wompiData1?.presigned_personal_data_auth?.permalink}
+   
+        onChange={setChecks}
+      />
       <View style={[styles.card1, { backgroundColor: theme.colors.card }]}>
         <View style={styles.stepContainer}>
           <ProgressStepsBar totalSteps={3} currentStep={2} />
@@ -120,17 +164,18 @@ export default function MetodoPago() {
             Total
           </Text>
           <Text style={[styles.totalValue, { color: theme.colors.text }]}>
-            $ 10.000
+          $ {price}
           </Text>
         </View>
 
         <TouchableOpacity
+          disabled={isDisabled}
           onPress={() => {
             handleNext();
           }}
-          style={[styles.button, { backgroundColor: theme.colors.primary }]}
+          style={[styles.button, { backgroundColor: isDisabled ? '#ccc' : theme.colors.primary, }]}
         >
-          <Text style={[styles.buttonText, { color: "#ffff" }]}>
+          <Text style={[styles.buttonText, {    color: isDisabled ? '#666' : '#fff'  }]}>
             Continuar compra
           </Text>
         </TouchableOpacity>
@@ -291,4 +336,5 @@ const getStyles = (theme, width, height, statusBarHeight) =>
       fontWeight: "400",
       zIndex: -1,
     },
+    
   });

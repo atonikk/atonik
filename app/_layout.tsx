@@ -23,6 +23,25 @@ export default function RootLayout() {
   );
 }
 
+export const linking = {
+  prefixes: ['https://0ekko.app.link', 'https://0ekko-alternate.app.link', 'atonik://'],
+  config: {
+    screens: {
+      '(tabs)': {
+        screens: {
+          home: 'home',
+        },
+      },
+      event: {
+        path: 'event/:eventoId',
+        parse: {
+          eventoId: (id: string) => id,
+        },
+      },
+    },
+  },
+};
+
 function RootLayoutNav() {
   const [isAppReady, setIsAppReady] = useState(false);
   const theme = useAppTheme();
@@ -135,6 +154,7 @@ function RootLayoutNav() {
           headerShown: false,
         }}
       />
+      <Stack.Screen name="screens/Payment/NequiForm" options={{}} />
     </Stack>
   );
 }

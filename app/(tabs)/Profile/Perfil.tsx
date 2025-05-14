@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ticketProfile from "@/assets/images/ticketProfile.png";
 import { jwtDecode } from "jwt-decode";
 import {
   useNavigation,
@@ -49,6 +50,7 @@ import logoLight from "@/assets/images/logoLight.png";
 const { width, height } = Dimensions.get("window");
 import { useProfilePhotoStore } from "@/app/utils/useStore";
 import { useAppTheme } from "@/constants/theme/useTheme";
+import { useFonts } from "expo-font";
 const proportionalFontSize = (size: number) => {
   const baseWidth = 375; // Ancho base (puedes ajustarlo según tus necesidades)
   return (size * width) / baseWidth;
@@ -63,7 +65,7 @@ const Profile: React.FC = () => {
   );
 
   const [isLoading, setIsLoading] = useState(false);
-
+  const [eventUsers, setEventUsers] = useState(0);
   const [isModalVisible, setModalVisible] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -94,7 +96,11 @@ const Profile: React.FC = () => {
   const closePanel = () => {
     setIsVisible(false);
   };
-
+  const [fontsLoaded] = useFonts({
+    "Inter-Light": require("@/assets/fonts/Inter/Inter-Light.ttf"),
+    "Inter-Bold": require("@/assets/fonts/Inter/Inter-Bold.ttf"),
+    "Roboto-Medium": require("@/assets/fonts/Roboto-Medium.ttf"),
+  });
   const openModal = () => {
     setAlertText("Escribe una nueva descripción");
     setModalVisible(true);
@@ -326,112 +332,6 @@ const Profile: React.FC = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <Modal
-        isVisible={isModalVisible}
-        onBackdropPress={closeModal}
-        backdropTransitionOutTiming={0}
-        useNativeDriver={true}
-        hideModalContentWhileAnimating={true}
-        style={{
-          position: "absolute",
-          top: "30%",
-          height: height * 0.2,
-          width: "100%",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-        avoidKeyboard={true}
-      >
-        <View
-          style={{
-            padding: 20,
-            borderRadius: 20,
-            backgroundColor: theme.colors.primary,
-            width: "90%",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.25,
-            shadowRadius: 4,
-            elevation: 5,
-          }}
-        >
-          <Text
-            style={{
-              color: "white",
-              fontSize: proportionalFontSize(18),
-              marginBottom: 15,
-              textAlign: "center",
-            }}
-          >
-            Editar Descripción
-          </Text>
-          <TextInput
-            placeholder="Escribe la nueva descripción"
-            placeholderTextColor="#7C7C7C"
-            style={{
-              width: "100%",
-              borderBottomWidth: 1,
-              borderBottomColor: "#fff",
-              color: "white",
-              fontSize: proportionalFontSize(16),
-              marginBottom: 20,
-              padding: 5,
-            }}
-            onChangeText={setnewDescription}
-            value={newDescription || ""}
-            editable={true}
-            multiline={true}
-          />
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              width: "100%",
-            }}
-          >
-            <Pressable
-              onPress={updateDescription}
-              style={{
-                flex: 1,
-                backgroundColor: "white",
-                paddingVertical: 10,
-                borderRadius: 5,
-                alignItems: "center",
-                marginRight: 5,
-              }}
-            >
-              <Text
-                style={{
-                  color: "black",
-                  fontSize: proportionalFontSize(16),
-                }}
-              >
-                Guardar
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={closeModal}
-              style={{
-                flex: 1,
-                backgroundColor: "#7C7C7C",
-                paddingVertical: 10,
-                borderRadius: 5,
-                alignItems: "center",
-                marginLeft: 5,
-              }}
-            >
-              <Text
-                style={{
-                  color: "white",
-                  fontSize: proportionalFontSize(16),
-                }}
-              >
-                Cerrar
-              </Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
       <View
         style={{
           ...styles.container,
@@ -479,20 +379,20 @@ const Profile: React.FC = () => {
           </View>
         </View>
         <View style={styles.middle}>
-          {token ? (
-            <View style={styles.cajafoto}>
-              {profilePhoto !== "" ? (
-                <Image
-                  source={{ uri: profilePhoto }}
-                  style={styles.profilePhoto}
-                />
-              ) : (
-                <Image
-                  source={colorScheme === "dark" ? shadowDark : shadowLight}
-                  style={styles.profilePhoto}
-                />
-              )}
+          <View style={styles.cajafoto}>
+            {profilePhoto !== "" ? (
+              <Image
+                source={{ uri: profilePhoto }}
+                style={styles.profilePhoto}
+              />
+            ) : (
+              <Image
+                source={colorScheme === "dark" ? shadowDark : shadowLight}
+                style={styles.profilePhoto}
+              />
+            )}
 
+            {token && (
               <Pressable
                 onPress={pickImage}
                 style={({ pressed }) => [
@@ -514,112 +414,234 @@ const Profile: React.FC = () => {
                   }}
                 />
               </Pressable>
-            </View>
-          ) : (
-            <View style={styles.cajafoto}>
-              <Image
-                source={require("@/assets/images/userShadow.png")}
-                style={styles.profilePhoto}
-              />
-            </View>
-          )}
-          <View style={styles.cajainfo}>
-            {token ? (
-              <View style={styles.cajaseguidores}>
-                <View
-                  style={{
-                    ...styles.seguidosinfo,
-                    borderBottomColor:
-                      colorScheme === "dark" ? "#ffffff" : "#000000",
-                  }}
-                >
-                  <View
-                    style={{
-                      ...styles.seguidostextcaja,
-                    }}
-                  >
-                    <Text style={styles.seguidos}>SEGUIDOS</Text>
-                  </View>
-                  <View style={styles.seguidosvaluecaja}>
-                    {following !== null ? (
-                      <Text
-                        style={{
-                          ...styles.value,
-                          color: theme.colors.text, // Cambia el color según el tema
-                        }}
-                      >
-                        {following}
-                      </Text>
-                    ) : (
-                      <Text style={styles.value}></Text>
-                    )}
-                  </View>
-                </View>
-                <View
-                  style={{
-                    ...styles.seguidoresinfo,
-                    borderBottomColor:
-                      colorScheme === "dark" ? "#ffffff" : "#000000",
-                  }}
-                >
-                  <View style={styles.seguidostextcaja}>
-                    <Text style={styles.seguidos}>SEGUIDORES</Text>
-                  </View>
-                  <View style={styles.seguidosvaluecaja}>
-                    {following !== null ? (
-                      <Text
-                        style={{
-                          ...styles.value,
-                          color: theme.colors.text, // Cambia el color según el tema
-                        }}
-                      >
-                        {followers}
-                      </Text>
-                    ) : (
-                      <Text style={styles.value}></Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <></>
             )}
-
-            {descriptionProfile === null ? (
-              <View style={styles.cajadescripcion}>
-                <Text style={styles.descripcion}></Text>
-              </View>
-            ) : (
-              <View style={styles.cajadescripcion}>
+          </View>
+          <View style={styles.cajainfo}>
+            <View style={styles.cajaseguidores}>
+              <View
+                style={{
+                  ...styles.seguidosinfo,
+                  borderBottomColor:
+                    colorScheme === "dark" ? "#ffffff" : "#000000",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  shadowColor: colorScheme === "dark" ? "#000" : "#ffffff",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: colorScheme === "dark" ? 0.25 : 0.15,
+                  shadowRadius: colorScheme === "dark" ? 3.84 : 2,
+                  elevation: colorScheme === "dark" ? 5 : 2,
+                }}
+              >
                 <Text
                   style={{
-                    ...styles.descripcion,
-                    color: theme.colors.text, // Cambia el color según el tema
+                    ...styles.seguidos,
+                    color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                    fontSize: proportionalFontSize(12),
                   }}
                 >
-                  {descriptionProfile}
+                  SIGUIENDO
                 </Text>
+                <View style={styles.seguidosvaluecaja}>
+                  <Text
+                    style={{
+                      ...styles.value,
+                      color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                      fontSize: proportionalFontSize(20),
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {following || "0"}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  ...styles.seguidoresinfo,
+                  borderBottomColor:
+                    colorScheme === "dark" ? "#ffffff" : "#000000",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  shadowColor: colorScheme === "dark" ? "#000" : "#ffffff",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: colorScheme === "dark" ? 0.25 : 0.15,
+                  shadowRadius: colorScheme === "dark" ? 3.84 : 2,
+                  elevation: colorScheme === "dark" ? 5 : 2,
+                }}
+              >
+                <Text
+                  style={{
+                    ...styles.seguidos,
+                    color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                    fontSize: proportionalFontSize(12),
+                  }}
+                >
+                  SEGUIDORES
+                </Text>
+                <View style={styles.seguidosvaluecaja}>
+                  <Text
+                    style={{
+                      ...styles.value,
+                      color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                      fontSize: proportionalFontSize(20),
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {followers || "0"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {descriptionProfile === null ? (
+              <View style={{ marginTop: 20 }}>
                 <Pressable
-                  onPress={openModal}
+                  onPress={() => router.push("/screens/Account/Login")}
                   style={({ pressed }) => [
                     {
-                      transform: pressed ? [{ scale: 0.8 }] : [{ scale: 1 }],
+                      transform: pressed ? [{ scale: 0.95 }] : [{ scale: 1 }],
                       opacity: pressed ? 0.8 : 1,
+                      width: "95%",
+                      backgroundColor: theme.colors.primary,
+                      paddingVertical: 12,
+                      paddingHorizontal: 20,
+                      borderRadius: 8,
+                      alignItems: "center",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 3.84,
+                      elevation: 5,
                     },
-                    styles.editar,
                   ]}
                 >
-                  <Image
-                    source={colorScheme === "dark" ? edit : editLight}
+                  <Text
                     style={{
-                      width: "100%",
-                      height: "100%",
-                      position: "absolute",
-                      right: "0%",
-                      bottom: "0%",
+                      fontSize: 19,
+                      color: "#ffffffc0",
+                      fontWeight: "200",
                     }}
-                  />
+                  >
+                    Iniciar Sesión
+                  </Text>
                 </Pressable>
+              </View>
+            ) : (
+              <View style={styles.cajadescripcion}>
+                {isModalVisible ? (
+                  <>
+                    <TextInput
+                      placeholder="Escribe la nueva descripción"
+                      placeholderTextColor="#7C7C7C"
+                      style={{
+                        ...styles.descripcion,
+                        color: theme.colors.text,
+                        borderBottomWidth: 1,
+                        borderBottomColor: theme.colors.text,
+                        padding: 5,
+                      }}
+                      onChangeText={setnewDescription}
+                      value={newDescription || ""}
+                      editable={true}
+                      maxLength={50}
+                      multiline={true}
+                    />
+                    <View style={{ flexDirection: "row", marginTop: 10 }}>
+                      <Pressable
+                        onPress={updateDescription}
+                        style={{
+                          flex: 1,
+                          backgroundColor: theme.colors.primary,
+                          paddingVertical: 12,
+                          borderRadius: 8,
+                          alignItems: "center",
+                          marginRight: 8,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "white",
+                            fontSize: proportionalFontSize(16),
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Guardar
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={() => {
+                          setModalVisible(false);
+                          setnewDescription(null);
+                        }}
+                        style={{
+                          flex: 1,
+                          backgroundColor: "#f0f0f0",
+                          paddingVertical: 12,
+                          borderRadius: 8,
+                          alignItems: "center",
+                          marginLeft: 8,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 3.84,
+                          elevation: 5,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#333",
+                            fontSize: proportionalFontSize(16),
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Cancelar
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text
+                      style={{
+                        ...styles.descripcion,
+                        color: theme.colors.text,
+                      }}
+                    >
+                      {descriptionProfile}
+                    </Text>
+                    <Pressable
+                      onPress={() => setModalVisible(true)}
+                      style={({ pressed }) => [
+                        {
+                          transform: pressed
+                            ? [{ scale: 0.8 }]
+                            : [{ scale: 1 }],
+                          opacity: pressed ? 0.8 : 1,
+                        },
+                        styles.editar,
+                      ]}
+                    >
+                      <Image
+                        source={colorScheme === "dark" ? edit : editLight}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          position: "absolute",
+                          right: "0%",
+                          bottom: "0%",
+                        }}
+                      />
+                    </Pressable>
+                  </>
+                )}
               </View>
             )}
           </View>
@@ -650,7 +672,7 @@ const Profile: React.FC = () => {
         ) : (
           <></>
         )}
-
+        {/* 
         <View style={styles.cajainferior}>
           {username ? (
             <View style={styles.cajaquien}>
@@ -662,16 +684,84 @@ const Profile: React.FC = () => {
           ) : (
             <></>
           )}
-        </View>
+        </View> */}
         <View style={styles.cajaeventos}>
-          {/* {username ? (
-          <EventListProfile usernameToget={username ? username : ""} />
-        ) : (
-          <Text>Esta vacio por aqui ...</Text>
-        )} */}
-        </View>
+          {token ? (
+            eventUsers > 0 ? (
+              <></>
+            ) : (
+              <View
+                style={{
+                  justifyContent: "center",
+                  alignItems: "center",
+                  padding: 20,
+                  marginTop: "10%",
+                }}
+              >
+                <Text
+                  style={{
+                    textAlign: "center",
+                    marginTop: "15%",
+                    fontSize: proportionalFontSize(18),
+                    color: theme.colors.text,
+                    fontFamily: "Inter-Light",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Esta muy vacio por aqui ...
+                </Text>
+                <Image
+                  source={ticketProfile}
+                  style={{
+                    width: "90%", // Agrandado
+                    height: "80%", // Agrandado
 
-       
+                    resizeMode: "contain",
+                    marginTop: "5%",
+                  }}
+                />
+              </View>
+            )
+          ) : (
+            <View
+              style={{
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 20,
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: proportionalFontSize(20), // Agrandado
+                  color: theme.colors.text,
+                  marginBottom: 10,
+                  fontFamily: "Inter-Light",
+                  fontStyle: "italic",
+                }}
+              >
+                Iniciar sesión para ver tus futuros {"\n"}
+                <Text
+                  style={{
+                    fontSize: proportionalFontSize(22), // Agrandado
+                    fontFamily: "Inter-Bold",
+                    fontWeight: "bold",
+                  }}
+                >
+                  eventos
+                </Text>
+              </Text>
+              <Image
+                source={ticketProfile}
+                style={{
+                  width: "90%", // Agrandado
+                  height: "80%", // Agrandado
+                  resizeMode: "contain",
+                }}
+              />
+            </View>
+          )}
+        </View>
       </View>
       <Panel
         isVisible={isVisible}
@@ -790,9 +880,9 @@ const styles = StyleSheet.create({
   cajadescripcion: {
     position: "absolute",
     width: "90%",
-    height: "50%",
+    height: "65%",
     left: "5%",
-    top: width > 375 ? "55%" : "30%",
+    top: width > 375 ? "45%" : "30%",
     justifyContent: "center",
     alignItems: "center",
   },

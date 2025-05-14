@@ -152,12 +152,22 @@ export default function Delete() {
           </Text>
         </View>
 
-        <Pressable onPress={cleanData} style={styles.button}>
+        <Pressable
+          onPress={() => {
+            const phoneNumber = "+573208435424";
+            const message = "Hola Atonik, tengo problemas con mi cuenta.";
+            const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
+              message
+            )}`;
+            router.push(url);
+          }}
+          style={styles.button}
+        >
           <Text style={styles.buttonText}>Hablar con soporte</Text>
         </Pressable>
-        <Pressable onPress={deleteaccount} style={styles.button2}>
+        {/* <Pressable onPress={deleteaccount} style={styles.button2}>
           <Text style={styles.buttonText}>Eliminar Cuenta</Text>
-        </Pressable>
+        </Pressable> */}
       </ScrollView>
     </View>
   );

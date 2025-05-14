@@ -44,11 +44,8 @@ const CheckNequi: React.FC = () => {
         `${url.url}/api/get_status_payment?messageid=${messageid}&clientid=${clientid}&transactionid=${transactionid}`
       );
 
-
       if (response.status === 200) {
         const statusCode = response.data.status;
-
-
         handleStatusCode(statusCode);
       }
     } catch (error) {
@@ -81,7 +78,6 @@ const CheckNequi: React.FC = () => {
   useEffect(() => {
     if (messageid && clientid && transactionid) {
       intervalRef.current = setInterval(() => {
-
         fetchPaymentStatus();
       }, 30000); // tempconsulta)
     } else {
@@ -95,9 +91,17 @@ const CheckNequi: React.FC = () => {
   }, [messageid, clientid, transactionid]);
 
   const steps = [
-    { step: 1, image: paso1, text: "Ve a la seccion de notificaciones" },
-    { step: 2, image: paso2, text: 'Ve a "recibidas" y dale aceptar' },
-    { step: 3, image: paso3, text: 'Revisa el estado en "Mis movimientos"' },
+    { step: 1, image: paso1, text: "Accede a la sección de Notificaciones." },
+    {
+      step: 2,
+      image: paso2,
+      text: 'Dirígete a "Recibidas" y presiona Aceptar.',
+    },
+    {
+      step: 3,
+      image: paso3,
+      text: 'Verifica el estado en la opción "Mis Movimientos".',
+    },
   ];
 
   // Vinculamos el scroll con scrollX usando Animated.event
@@ -123,8 +127,24 @@ const CheckNequi: React.FC = () => {
       <View style={styles.divlogo}>
         <Image source={logo} style={styles.logo} />
       </View>
-      <Text style={styles.mensaje}>
-        Por favor sigue los pasos para realizar el pago
+      <Text
+        style={{
+          position: "absolute",
+          top: "18%",
+          lineHeight: 30,
+          textAlign: "center",
+          color: "#fff",
+          fontSize: 22,
+          marginBottom: 10,
+          fontFamily: "Inter-Bold",
+          width: "90%",
+          padding: 10,
+          backgroundColor: "#6438D7",
+          borderRadius: 10,
+          shadowColor: "#000",
+        }}
+      >
+        Realiza cada paso para completar tu pago
       </Text>
       <View style={styles.divpasos}>
         <Text style={styles.paso}>PASO {steps[currentStep].step}</Text>
@@ -153,8 +173,45 @@ const CheckNequi: React.FC = () => {
           />
         </View>
       </View>
-      <View style={styles.dialogBox}>
-        <Text style={styles.responseText}>ESTADO : {status}</Text>
+
+      <View
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          position: "absolute",
+          bottom: "10%",
+          padding: 15,
+          backgroundColor: "#6438D7",
+          borderRadius: 10,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+          elevation: 5,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 20,
+            fontWeight: "bold",
+            color: "#fff",
+            textAlign: "center",
+            fontFamily: "Inter-Bold",
+          }}
+        >
+          ESTADO: {" "}
+          <Text
+            style={{
+              fontSize: 20,
+              fontWeight: "bold",
+              color: "#fff",
+              textAlign: "center",
+              fontFamily: "Inter-Bold",
+            }}
+          >
+            {status}
+          </Text>
+        </Text>
       </View>
       <Pressable style={styles.cancelPayment}>
         <Text style={styles.textwhite}>Cancelar pago</Text>
@@ -207,7 +264,7 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   dialogBox: {
-    height : width > 375 ? "10%" : "8%",
+    height: width > 375 ? "10%" : "8%",
     justifyContent: "center",
     alignItems: "center",
     position: "absolute",
@@ -258,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     width: "50%",
-    height : width > 375 ? "5%" : "7%",
+    height: width > 375 ? "5%" : "7%",
     position: "absolute",
     bottom: "0%",
     padding: 10,

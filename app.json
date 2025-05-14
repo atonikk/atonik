@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "atonik",
+    "name": "Atonik",
     "slug": "atonik",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,10 +15,30 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.atonik.atonik"
+      "bundleIdentifier": "com.atonik.atonik",
+      "associatedDomains": [
+        "applinks:0ekko.app.link",
+        "applinks:0ekko-alternate.app.link"
+      ]
     },
     "android": {
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": {
+            "scheme": "https",
+            "host": "*.0ekko.app.link",
+            "pathPrefix": "/"
+          },
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "softwareKeyboardLayoutMode": "pan",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyA9NYFSpTJRqoo33bY8aWI27Txag2c0Q2s"
+        }
+      },
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
@@ -33,6 +53,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-branch",
       "@react-native-firebase/auth",
       "@react-native-firebase/app",
       "@react-native-google-signin/google-signin"

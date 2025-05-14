@@ -23,7 +23,7 @@ import Background from "@/components/Background";
 import { Dimensions } from "react-native";
 const { width, height } = Dimensions.get("window");
 const Password = () => {
-  const { username, phoneNumber, nombre, fecha } = useLocalSearchParams();
+  const { username, phoneNumber, nombre, fecha, email } = useLocalSearchParams();
   const [isModalRoundedVisible, setModalRoundedVisible] =
     useState<boolean>(false);
   const [modalRoundedText, setModalRoundedText] = useState<string>("");
@@ -70,6 +70,7 @@ const Password = () => {
         username: username,
         phoneNumber: phoneNumber || "", // Ensure phoneNumber is not null
         name: nombre,
+        email: email,
         birthdate: fecha,
         password: password,
       });
@@ -137,7 +138,7 @@ const Password = () => {
               style={[
                 styles.label,
                 {
-                  marginTop: "8%",
+                  marginTop: "15%",
                 },
               ]}
             >

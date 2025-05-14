@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, {useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,34 @@ import {
   ScrollView,
   TextInput,
 } from 'react-native';
-import { useWindowDimensions } from 'react-native';
+import { formatDateColombia } from '@/app/utils/date/formatDate';
 import { useAppTheme } from '@/constants/theme/useTheme';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useRouter } from 'expo-router';
+import {getEventById} from "@/app/utils/api/event";
+import { useLocalSearchParams } from "expo-router";
 import ProgressStepsBar from '@/components/progressIndicators/progressStepsBar';
 export default function CarritoEntradas() {
+  const { eventId } = useLocalSearchParams();
+
+  
+  const [event, setEvent] = useState<any>(null);
   const router = useRouter();
   const handleNext = () => {
-
-      router.push('/screens/Payment/Select');
-
+    console.log("eventId type:", typeof eventId);
+console.log("eventId value:", eventId);
+    router.push({
+      pathname: '/screens/Payment/Select',
+      params: {
+        eventId: eventId,
+        eventName: event?.name,
+        price: total,
+        quantity:quantity,
+      },
+    });
   };
-
-  const { width, height } = useWindowDimensions();
+  
+  
   const theme = useAppTheme();
 
   const [quantity, setQuantity] = useState(1);
@@ -32,15 +46,35 @@ export default function CarritoEntradas() {
   );
 
   const [coupon, setCoupon] = useState('');
-  const ticketPrice = 120000;
-  const serviceFee = 9500;
-
+  const ticketPrice = event?.price ?? 0; // Usa el operador nullish coalescing (??) para valores null/undefined
+  const serviceFee = event?.service_fee ?? 0; // Asegura que sea 0 si no está definido
+  
   const total = useMemo(() => {
-    return (ticketPrice * quantity + serviceFee).toLocaleString('es-CO');
-  }, [quantity]);
+    return (ticketPrice * quantity + serviceFee * quantity).toLocaleString('es-CO');
+  }, [quantity, ticketPrice, serviceFee]); // Asegúrate de que use los valores dependientes de 'ticketPrice' y 'serviceFee'
+  
   const totalEntradas = useMemo(() => {
-    return (ticketPrice * quantity ).toLocaleString('es-CO');
-  }, [quantity]);
+    return (ticketPrice * quantity).toLocaleString('es-CO');
+  }, [quantity, ticketPrice]); // Igual que el anterior, incluye las dependencias correctas
+  
+  const totalFee = useMemo(() => {
+    return (serviceFee* quantity).toLocaleString('es-CO');
+  }, [quantity, ticketPrice]); // Igual que el anterior, incluye las dependencias correctas
+  
+
+  useEffect(() => {
+    console.log("eventId:", eventId); 
+    if (!eventId) return;
+
+    const fetchEvent = async () => {
+      const result = await getEventById(eventId as string);
+      setEvent(result);
+      console.log("Event data:", result); // Verifica que los datos se obtengan correctamente
+    };
+
+    fetchEvent();
+  }, [eventId]);
+
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}> 
@@ -49,12 +83,12 @@ export default function CarritoEntradas() {
 
         <View style={[styles.card, { backgroundColor: theme.colors.card, flexDirection: 'row' }]}>
           <Image
-            source={require('../../../assets/images/po1.png')}
+            source={{ uri: event?.image }}
             style={styles.image}
           />
           <View style={styles.details}>
-            <Text style={[styles.eventTitle, { color: theme.colors.text }]}>Boletas Concierto Bad Bunny - VIP</Text>
-            <Text style={[styles.date, { color: theme.colors.primary }]}>Sábado 25 Nov 2025, 8:00 PM</Text>
+            <Text style={[styles.eventTitle, { color: theme.colors.text }]}>{event?.service_fee }</Text>
+            <Text style={[styles.date, { color: theme.colors.secondary }]}>    {event?.date?.$date ? formatDateColombia(event.date.$date) : 'Cargando fecha...'}</Text>
 
             <Text style={[styles.label, { color: theme.colors.text, marginTop: 5 }]}>Cantidad:</Text>
             <DropDownPicker
@@ -98,7 +132,7 @@ export default function CarritoEntradas() {
         </View>
         <View style={styles.shippingRow}>
           <Text style={[styles.label, { color: theme.colors.text }]}>Tarifa de servicio</Text>
-          <Text style={[styles.fee, { color: theme.colors.text }]}>$ {serviceFee.toLocaleString('es-CO')}</Text>
+          <Text style={[styles.fee, { color: theme.colors.text }]}>$ {totalFee}</Text>
         </View>
 
         <View style={styles.totalRow}>

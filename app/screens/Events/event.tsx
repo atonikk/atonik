@@ -12,20 +12,19 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
-import { router, useLocalSearchParams } from "expo-router";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import logo from "../../../assets/images/logo.png";
 import left from "../../../assets/images/left.png";
 import right from "../../../assets/images/right.png";
 import Panel from "../../../components/panelPushUp";
-import url from "../../../constants/url.json";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import MapView, { Marker, Circle } from "react-native-maps";
 export default function Tab() {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [isVisible, setIsVisible] = useState(false);
   const [username, setUsername] = useState("");
   const [isIn, setIsin] = useState(false);
@@ -35,7 +34,6 @@ export default function Tab() {
   const [loadingImages, setLoadingImages] = useState(true);
   const { event } = route.params;
 
-  const [decodedToken, setDecodedToken] = useState<string | null>(null);
   async function getDecodedToken() {
     try {
       // Obtener el token desde AsyncStorage
@@ -65,135 +63,42 @@ export default function Tab() {
     setIsVisible(false);
   };
   const goforpay = (eventId: any) => {
-    navigation.navigate("screens/Events/CodeOption");
+ 
+    router.push({
+      pathname: "screens/Payment/Resume",
+      params: { eventId }, // pasa el parámetro aquí
+    });
   };
 
   const handlePress = () => {
-    if (!isIn) {
+    if (isIn) {
       togglePanel();
+
     } else {
-      goforpay();
+      goforpay(event._id);
+      
       // createTicket()
     }
     // Puedes agregar lógica adicional si necesitas hacer algo más cuando no es válido
   };
 
-  const fetchEvents = async () => {
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-      const response = await fetch(`${url.url}/api/protected`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
+ 
 
-      if (!response.ok) {
-      }
-      setIsin(true);
-      const data = await response.json();
 
-      // Manejar diferentes códigos de respuesta
-      switch (response.status) {
-        case 200:
-          // Respuesta exitosa
-
-          break;
-        case 201:
-          // Recurso creado con éxito
-
-          break;
-        case 422:
-          setIsin(false);
-          console.log("Error de validación o datos inválidos:", data);
-          break;
-        case 204:
-          // Sin contenido pero exitoso
-          console.log("Sin contenido, pero la solicitud fue exitosa");
-          break;
-        default:
-          console.log(
-            "Respuesta recibida con un código inesperado:",
-            response.status
-          );
-      }
-    } catch (error) {
-      console.error("Error fetching events:", error);
-    }
-  };
-
-  const createTicket = async () => {
-    const eventData = {
-      nameEvent: event.name,
-      placeEvent: event.place,
-      dateEvent: event.date,
-      username: username,
-      eventImage: event.image,
-      idEvent: event._id,
-      colors: event.colors,
-    };
-
-    try {
-      const token = await AsyncStorage.getItem("access_token");
-
-      const response = await fetch(`${url.url}/api/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(eventData),
-      });
-
-      if (!response.ok) {
-      }
-
-      // Manejar diferentes códigos de respuesta
-      switch (response.status) {
-        case 200:
-          navigation.navigate("home");
-          console.log("Eventos obtenidos con éxito:");
-          break;
-        case 201:
-          navigation.navigate("ticket");
-          console.log("Recurso creado con éxito");
-          break;
-        case 422:
-          setIsin(false);
-          console.log("Error de validación o datos inválidos:");
-          break;
-        case 204:
-          // Sin contenido pero exitoso
-          console.log("Sin contenido, pero la solicitud fue exitosa");
-          break;
-        default:
-          console.log(
-            "Respuesta recibida con un código inesperado:",
-            response.status
-          );
-      }
-    } catch (error) {
-      console.error("Error fetching events:", error);
-    }
-  };
 
   useFocusEffect(
     useCallback(() => {
       setImage(event.images[0]);
       getDecodedToken();
-      fetchEvents();
       preloadImages();
 
-      navigation.setOptions({
-        headerShown: false,
-      });
+   
 
       // Aquí puedes devolver una función de limpieza si fuera necesario
       return () => {
         // cleanup actions, si es necesario
       };
-    }, [navigation])
+    }, [])
   );
   const handleLeft = () => {
     if (images == 0) {
@@ -211,23 +116,7 @@ export default function Tab() {
     }
     setImage(event.images[images]);
   };
-  const hexToRgb = (hex, alpha = 1) => {
-    // Asegúrate de que el color hexadecimal comienza con '#'
-    if (hex.startsWith("#")) {
-      hex = hex.slice(1);
-    }
 
-    // Convertir el color hexadecimal a RGB
-    const bigint = parseInt(hex, 16);
-    const r = (bigint >> 16) & 255;
-    const g = (bigint >> 8) & 255;
-    const b = bigint & 255;
-
-    // Devolver el color en formato RGB o RGBA
-    return alpha < 1
-      ? `rgba(${r}, ${g}, ${b}, ${alpha})`
-      : `rgb(${r}, ${g}, ${b})`;
-  };
   const preloadImages = async () => {
     try {
       await Promise.all(event.images.map((img) => Image.prefetch(img)));

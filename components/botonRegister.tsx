@@ -6,12 +6,19 @@ import { useFonts } from "expo-font";
 const BotonRegister = ({
   textboton,
   onPress,
+  width = styles.quieroserbutton.width,
+  height = styles.quieroserbutton.height,
 }: {
   textboton: string;
   onPress: () => void;
+  width?: number;
+  height?: number;
 }) => {
   return (
-    <TouchableOpacity style={styles.quieroserbutton} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.quieroserbutton, { width, height }]}
+      onPress={onPress}
+    >
       <Text
         style={{
           color: "white",

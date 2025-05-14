@@ -17,7 +17,13 @@ import { useAppTheme } from "@/constants/theme/useTheme";
 import { useColorScheme } from "react-native";
 const { width, height } = Dimensions.get("window");
 
-const Logo = ({ existsDerechos }: { existsDerechos: boolean }) => {
+interface LogoProps {
+  existsDerechos: boolean;
+  width?: string | number;
+  height?: string | number;
+}
+
+const Logo = ({ existsDerechos, width: customWidth, height: customHeight }: LogoProps) => {
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
   const [fontsLoaded] = useFonts({
@@ -52,8 +58,8 @@ const Logo = ({ existsDerechos }: { existsDerechos: boolean }) => {
       style={{
         position: "absolute",
         top: keyboardVisible ? "2%" : "10%",
-        width: width,
-        height: keyboardVisible ? height * 0.18 : height * 0.25,
+        width: customWidth || width,
+        height: customHeight || (keyboardVisible ? height * 0.18 : height * 0.25),
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: width * 0.05, // Add padding for responsiveness

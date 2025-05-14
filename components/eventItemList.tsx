@@ -25,20 +25,20 @@ const EventItem = ({ events, state, navigation }) => {
           />
         ))}
       </ScrollView>
-      <Text>Content Height: {contentHeight}</Text>
+   
     </View>
   );
 };
 const styles = StyleSheet.create({
   container: {
-    flex: 1, // Asegura que el contenedor use el espacio disponible
+  marginTop: 15,
     width:Dimensions.get('window').width*0.95,
-    height:"300%"
+  
   },
   scrollContainer: {
     flex: 1, // Permite que el ScrollView use el espacio disponible
     width: '100%',
-    marginBottom:"80%"
+
   },
 });
 

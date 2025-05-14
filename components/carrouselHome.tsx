@@ -46,7 +46,7 @@ export default function Carrousel() {
             parallaxScrollingScale: 0.9,
             parallaxScrollingOffset: 50,
           }}
-          height={width / 1.6}
+          height={width / 1.4}
           data={data}
           scrollAnimationDuration={1500}
           autoPlayInterval={1500}
@@ -63,12 +63,12 @@ export default function Carrousel() {
         />
    
         <Pagination.Basic
-        	dotStyle={{ backgroundColor: "#ffffff", borderRadius:50 }}
+        	dotStyle={{ backgroundColor: "#ffffff", borderRadius:3, }}
           activeDotStyle={{ backgroundColor: "#6100a1" }}
           progress={progress}
           data={data}
        
-          containerStyle={{ gap: 5, marginTop: 10 }}
+          containerStyle={{ gap: 5, marginTop: -35 }}
           onPress={onPressPagination}
         />
 
@@ -83,11 +83,11 @@ export default function Carrousel() {
     logo: {
       height: 50,
       width: 50,
-      marginTop: "12%",
+
     },
   
     container: {
-      backgroundColor: "#181818",
+
 
   
       alignItems: "center",
