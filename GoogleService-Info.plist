@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCeGT1z7iNdnL-yzzqyI13zrbEAxTt8gBQ</string>
+	<key>GCM_SENDER_ID</key>
+	<string>667525490941</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.atonik.Atonik</string>
+	<key>PROJECT_ID</key>
+	<string>atonik-proyect</string>
+	<key>STORAGE_BUCKET</key>
+	<string>atonik-proyect.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:667525490941:ios:cbde56e6dfe226b4083694</string>
+</dict>
+</plist>

@@ -16,7 +16,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.atonik.Atonik",
-      "associatedDomains": ["applinks:go.atonikapp.com"]
+      "associatedDomains": [
+        "applinks:go.atonikapp.com",
+        "applinks:go.atonikapp.com"
+      ],
+      "googleServicesFile": "./GoogleService-Info.plist",
+
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "intentFilters": [
