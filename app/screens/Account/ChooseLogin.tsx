@@ -50,7 +50,7 @@ const ChooseLogin: React.FC = () => {
   const [isAlertVisible, setAlertVisible] = useState(false);
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId:
-      "667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com",
+      "667525490941-l9q8npmbu0ouj33c176lar0oq61aseod.apps.googleusercontent.com",
   });
   useEffect(() => {
     console.log("Comprobando si ya hay sesión iniciada...");

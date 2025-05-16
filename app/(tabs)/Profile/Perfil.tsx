@@ -388,7 +388,15 @@ const Profile: React.FC = () => {
             ) : (
               <Image
                 source={colorScheme === "dark" ? shadowDark : shadowLight}
-                style={styles.profilePhoto}
+                style={{
+                  width: 150,
+                  height: 170,
+                  marginLeft: "5%",
+                  marginTop: "5%",
+                  resizeMode: "contain",
+
+                  borderRadius: 10,
+                }}
               />
             )}
 

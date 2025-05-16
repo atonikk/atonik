@@ -19,7 +19,8 @@ import EventItem from "@/components/eventItemListSearch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Panel from "@/components/panelPushUp";
 import { useAppTheme } from "@/constants/theme/useTheme";
-
+import shadowDark from "@/assets/images/userShadow.png";
+import shadowLight from "@/assets/images/userShadowLight.png";
 const { height } = Dimensions.get("window");
 
 export default function Tab() {
@@ -119,7 +120,9 @@ export default function Tab() {
         source={
           item.profile_photo
             ? { uri: item.profile_photo }
-            : require("../../assets/images/userShadow.png")
+            : colorScheme === "dark"
+            ? shadowDark
+            : shadowLight
         }
         style={styles.userImage}
       />
@@ -156,21 +159,6 @@ export default function Tab() {
         </View>
         <View style={styles.cajabuttons}>
           <Pressable
-            onPress={() => setActiveTab("Usuarios")}
-            style={[
-              styles.tabButton,
-              activeTab === "Usuarios" && styles.activeTabButton,
-            ]}
-          >
-            <Text
-              style={{
-                color: activeTab === "Usuarios" ? "#a681ff" : theme.colors.text,
-              }}
-            >
-              Usuarios
-            </Text>
-          </Pressable>
-          <Pressable
             onPress={() => setActiveTab("Eventos")}
             style={[
               styles.tabButton,
@@ -183,6 +171,21 @@ export default function Tab() {
               }}
             >
               Eventos
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setActiveTab("Usuarios")}
+            style={[
+              styles.tabButton,
+              activeTab === "Usuarios" && styles.activeTabButton,
+            ]}
+          >
+            <Text
+              style={{
+                color: activeTab === "Usuarios" ? "#a681ff" : theme.colors.text,
+              }}
+            >
+              Usuarios
             </Text>
           </Pressable>
         </View>

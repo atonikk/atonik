@@ -9,6 +9,7 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
   Pressable,
+  Share,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRoute } from "@react-navigation/native";
@@ -18,7 +19,7 @@ import logo from "../../../assets/images/logo.png";
 import left from "../../../assets/images/left.png";
 import right from "../../../assets/images/right.png";
 import Panel from "../../../components/panelPushUp";
-
+import * as Branch from "expo-branch";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -33,6 +34,45 @@ export default function Tab() {
   const route = useRoute();
   const [loadingImages, setLoadingImages] = useState(true);
   const { event } = route.params;
+  const BRANCH_KEY = "key_live_nzyeeUbybY15u9id4qYNzpliABovlD64"; // 👈 tu Branch key aquí
+
+  const crearLinkEvento = async (eventoId: string): Promise<string | null> => {
+    const body = {
+      branch_key: BRANCH_KEY,
+      channel: "app",
+      feature: "share",
+      data: {
+        $deeplink_path: `event/${eventoId}`,
+        eventoId, // esto va en los parámetros para que lo capture tu listener
+      },
+    };
+    try {
+      const response = await fetch("https://api2.branch.io/v1/url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error("Error creando link:", error);
+      return null;
+    }
+  };
+  const compartirEvento = async (eventoId: string) => {
+    const url = await crearLinkEvento(eventoId);
+
+    if (!url) return;
+
+    await Share.share({
+      message: `Revisa este evento: ${url}`,
+    });
+
+    console.log("Link generado y compartido:", url);
+  };
 
   async function getDecodedToken() {
     try {
@@ -63,7 +103,6 @@ export default function Tab() {
     setIsVisible(false);
   };
   const goforpay = (eventId: any) => {
- 
     router.push({
       pathname: "screens/Payment/Resume",
       params: { eventId }, // pasa el parámetro aquí
@@ -73,26 +112,19 @@ export default function Tab() {
   const handlePress = () => {
     if (isIn) {
       togglePanel();
-
     } else {
       goforpay(event._id);
-      
+
       // createTicket()
     }
     // Puedes agregar lógica adicional si necesitas hacer algo más cuando no es válido
   };
-
- 
-
-
 
   useFocusEffect(
     useCallback(() => {
       setImage(event.images[0]);
       getDecodedToken();
       preloadImages();
-
-   
 
       // Aquí puedes devolver una función de limpieza si fuera necesario
       return () => {
@@ -129,8 +161,15 @@ export default function Tab() {
     <SafeAreaView>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <LinearGradient colors={event.colors} style={styles.container}>
+          <Pressable
+            onPress={() => {
+              compartirEvento(event._id);
+            }}
+            style={styles.overlay}
+          >
+            <Text> Compartir </Text>
+          </Pressable>
           <Image style={styles.logo} source={logo} />
-
           <View style={styles.imageRow}>
             <Pressable onPress={handleLeft}>
               <Image style={styles.row} tintColor="white" source={left} />

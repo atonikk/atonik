@@ -7,55 +7,80 @@ import {
   Image,
   Dimensions,
   Alert,
-  ScrollView,
   TextInput,
+  useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { RootStackParamList } from "@/app/_layout";
 import { jwtDecode } from "jwt-decode";
 import { useNavigation, router, useLocalSearchParams } from "expo-router";
-import url from "../../../constants/url.json";
+import url from "@/constants/url.json";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
-import * as FileSystem from "expo-file-system";
 import Modal from "react-native-modal";
-import Panel from "../../../components/panelPushUp";
+import Panel from "@/components/panelPushUp";
 import CustomModal from "@/components/modalAlert";
-import CustomModalButton from "@/components/modalAlertButton";
 import EventListTopProfile from "@/components/eventListTopProfile";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAppTheme } from "@/constants/theme/useTheme";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
+import logoDark from "@/assets/images/logo.png";
+import logoLight from "@/assets/images/logoLight.png";
+import shadowDark from "@/assets/images/userShadow.png";
+import shadowLight from "@/assets/images/userShadowLight.png";
+import add from "@/assets/images/add.png";
+import addLight from "@/assets/images/addLight.png";
+import edit from "@/assets/images/editar.png";
+import editLight from "@/assets/images/editarLight.png";
+import { useFonts } from "expo-font";
+import { get } from "react-native/Libraries/TurboModule/TurboModuleRegistry";
+
 const { width, height } = Dimensions.get("window");
 
 const proportionalFontSize = (size: number) => {
-  const baseWidth = 375; // Ancho base (puedes ajustarlo según tus necesidades)
+  const baseWidth = 375;
   return (size * width) / baseWidth;
 };
 
 const UserProfile: React.FC = () => {
+  const theme = useAppTheme();
+  const colorScheme = useColorScheme();
   const [is_following, setIsFollowing] = useState<boolean>(false);
   const [token, setToken] = useState<string | null>(null);
   const navigation = useNavigation();
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
-  const { userId, getprofile_photo, getusuario, getfollowingnum, getfollowersnum, getdescription } = useLocalSearchParams();
+  const {
+    userId,
+    getprofile_photo,
+    getusuario,
+    getfollowingnum,
+    getfollowersnum,
+    getdescription,
+  } = useLocalSearchParams();
   const [isVisible, setIsVisible] = useState(false);
   const [isPanelVisible, setisPanelVisible] = useState(false);
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
+
   const showModalAlert = (message: string) => {
     setAlertText(message);
     setAlertVisible(true);
   };
+
   const togglePanel = () => {
     setisPanelVisible(!isPanelVisible);
   };
+
   const toggleAlert = () => {
     setAlertVisible(!isAlertVisible);
   };
+
   const checkToken = async () => {
     const storedToken = await AsyncStorage.getItem("access_token");
     setToken(storedToken);
- 
+
     try {
       if (storedToken !== null) {
         setisPanelVisible(false);
@@ -66,67 +91,63 @@ const UserProfile: React.FC = () => {
     } catch (error) {
       console.error("Error al verificar el token", error);
     }
-  };  
+  };
 
   useEffect(() => {
-
     const followingNumConverted = Number(getfollowingnum);
     const followersNumConverted = Number(getfollowersnum);
     setFollowing(followingNumConverted);
     setFollowers(followersNumConverted);
-    checkToken(); 
-
+    checkToken();
   }, []);
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+
   const closePanel = () => {
     setIsVisible(false);
   };
+
   const cleanData = async () => {
-      router.push("/screens/Account/Login");
+    router.push("/screens/Account/Login");
   };
+
   const checkFollowing = async (username: string, tokencheck: string) => {
     try {
-      const response = await axios.get(`${url.url}/api/check_following?username=${username}`, {
-        headers: {
-          Authorization: `Bearer ${tokencheck}`,
-        },
-      });
-      
+      const response = await axios.get(
+        `${url.url}/api/check_following?username=${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${tokencheck}`,
+          },
+        }
+      );
+
       if (response.status === 200) {
-
-
-        if (response.data.is_following == true) {
-          setIsFollowing(true);
-        }
-        else{
-          setIsFollowing(false);
-        }
+        setIsFollowing(response.data.is_following);
       } else {
-        Alert.alert("Error", "No se pudo obtener la información de seguimiento");
+        Alert.alert(
+          "Error",
+          "No se pudo obtener la información de seguimiento"
+        );
       }
     } catch (error) {
       setisPanelVisible(true);
-    } 
+    }
   };
+
   const followUser = async () => {
     try {
       const response = await axios.post(
         `${url.url}/api/follow`,
         {
-          user_to_follow: getusuario, // El usuario que se desea seguir
+          user_to_follow: getusuario,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // El token va en los headers
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       );
-      
+
       if (response.status === 200) {
         showModalAlert(`Has seguido a ${getusuario} :D`);
         setIsFollowing(true);
@@ -138,149 +159,226 @@ const UserProfile: React.FC = () => {
       showModalAlert("Ha habido un error al intentar seguir al usuario");
     }
   };
+
   const unfollowUser = async () => {
     try {
       const response = await axios.post(
         `${url.url}/api/unfollow`,
         {
-          user_to_unfollow: getusuario, // El usuario que se desea seguir
+          user_to_unfollow: getusuario,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
         }
       );
-      
+
       if (response.status === 200) {
         showModalAlert(`Has dejado de seguir a ${getusuario} :(`);
         setIsFollowing(false);
         setFollowers(followers - 1);
       } else {
-        Alert.alert("Error", "No se pudo seguir al usuario");
+        Alert.alert("Error", "No se pudo dejar de seguir al usuario");
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error al intentar dejar de seguir al usuario", error);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.superior}>
-        <Image
-          source={require("../../../assets/images/logo.png")}
-          style={styles.logo}
+    <SafeAreaView style={{ flex: 1 }}>
+      <View
+        style={{
+          ...styles.container,
+          backgroundColor: theme.colors.background,
+        }}
+      >
+        <View
+          style={{
+            ...styles.superior,
+            borderBottomColor: theme.colors.text,
+            borderBottomWidth: 2,
+          }}
+        >
+          <Image
+            source={colorScheme === "dark" ? logoDark : logoLight}
+            style={styles.logo}
+          />
+          <View style={styles.cajauser}>
+            <Text
+              style={{
+                ...styles.welcomeText,
+                color: theme.colors.text,
+              }}
+            >
+              {getusuario || "No disponible"}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.middle}>
+          <View style={styles.cajafoto}>
+            {getprofile_photo ? (
+              <Image
+                source={{ uri: getprofile_photo as string }}
+                style={styles.profilePhoto}
+              />
+            ) : (
+              <Image
+                source={colorScheme === "dark" ? shadowDark : shadowLight}
+                style={{
+                  width: 150,
+                  height: 170,
+                  marginLeft: "5%",
+                  marginTop: "5%",
+                  resizeMode: "contain",
+
+                  borderRadius: 10,
+                }}
+              />
+            )}
+          </View>
+          <View style={styles.cajainfo}>
+            <View style={styles.cajaseguidores}>
+              <View
+                style={{
+                  ...styles.seguidosinfo,
+                  borderBottomColor:
+                    colorScheme === "dark" ? "#ffffff" : "#000000",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  shadowColor: colorScheme === "dark" ? "#000" : "#ffffff",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: colorScheme === "dark" ? 0.25 : 0.15,
+                  shadowRadius: colorScheme === "dark" ? 3.84 : 2,
+                  elevation: colorScheme === "dark" ? 5 : 2,
+                }}
+              >
+                <Text
+                  style={{
+                    ...styles.seguidos,
+                    color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                    fontSize: proportionalFontSize(12),
+                  }}
+                >
+                  SIGUIENDO
+                </Text>
+                <View style={styles.seguidosvaluecaja}>
+                  <Text
+                    style={{
+                      ...styles.value,
+                      color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                      fontSize: proportionalFontSize(20),
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {following || "0"}
+                  </Text>
+                </View>
+              </View>
+              <View
+                style={{
+                  ...styles.seguidoresinfo,
+                  borderBottomColor:
+                    colorScheme === "dark" ? "#ffffff" : "#000000",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  paddingVertical: 10,
+                  borderRadius: 10,
+                  shadowColor: colorScheme === "dark" ? "#000" : "#ffffff",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: colorScheme === "dark" ? 0.25 : 0.15,
+                  shadowRadius: colorScheme === "dark" ? 3.84 : 2,
+                  elevation: colorScheme === "dark" ? 5 : 2,
+                }}
+              >
+                <Text
+                  style={{
+                    ...styles.seguidos,
+                    color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                    fontSize: proportionalFontSize(12),
+                  }}
+                >
+                  SEGUIDORES
+                </Text>
+                <View style={styles.seguidosvaluecaja}>
+                  <Text
+                    style={{
+                      ...styles.value,
+                      color: colorScheme === "dark" ? "#FFFFFF" : "#333333",
+                      fontSize: proportionalFontSize(20),
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {followers || "0"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.cajadescripcion}>
+              <Text
+                style={{
+                  ...styles.descripcion,
+                  color: theme.colors.text,
+                }}
+              >
+                {getdescription || "Me encanta Atonik!"}
+              </Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.cajaboton}>
+          <Pressable
+            onPress={() => {
+              if (is_following) {
+                unfollowUser();
+              } else {
+                followUser();
+              }
+            }}
+            style={{
+              ...styles.button,
+              backgroundColor: theme.colors.primary,
+            }}
+          >
+            <Text
+              style={{
+                ...styles.buttonText,
+                color: "#ffffff",
+              }}
+            >
+              {is_following ? "Dejar de seguir" : "Seguir"}
+            </Text>
+          </Pressable>
+        </View>
+        <View style={styles.cajaeventos}>
+          <EventListTopProfile usernameToget={getusuario as string} />
+        </View>
+        <CustomModal
+          onBackdropPress={toggleAlert}
+          isVisible={isAlertVisible}
+          toggleModal={toggleAlert}
+          modalText={AlertText}
         />
-        <View style={styles.cajauser}>
-          <Text style={styles.welcomeText}>
-            {getusuario ? getusuario : "---"}
-          </Text>
-        </View>
       </View>
-      <View style={styles.middle}>
-        {getprofile_photo ? (
-          <View style={styles.cajafoto}>
-            <Image
-              source={{ uri: getprofile_photo as string }}
-              style={styles.profilePhoto}
-            />
-          </View>
-        ) : (
-          <View style={styles.cajafoto}>
-            <Image
-              source={require("../../../assets/images/userShadow.png")}
-              style={styles.profilePhoto}
-            />
-          </View>
-        )}
-        <View style={styles.cajainfo}>
-          <View style={styles.cajaseguidores}>
-            <View style={styles.seguidosinfo}>
-              <View style={styles.seguidostextcaja}>
-                <Text style={styles.seguidos}>SEGUIDOS</Text>
-              </View>
-              <View style={styles.seguidosvaluecaja}>
-                {following ? (
-                  <Text style={styles.value}>{following}</Text>
-                ) : (
-                  <Text style={styles.value}>0</Text>
-                )}
-              </View>
-            </View>
-            <View style={styles.seguidoresinfo}>
-              <View style={styles.seguidostextcaja}>
-                <Text style={styles.seguidos}>SEGUIDORES</Text>
-              </View>
-              <View style={styles.seguidosvaluecaja}>
-                {followers ? (
-                  <Text style={styles.value}>{followers}</Text>
-                ) : (
-                  <Text style={styles.value}>0</Text>
-                )}
-              </View>
-            </View>
-          </View>
-          {getdescription ? (
-            <View style={styles.cajadescripcion}>
-              <Text style={styles.descripcion}>{getdescription}</Text>
-            </View>
-          ) : (
-            <View style={styles.cajadescripcion}>
-              <Text style={styles.descripcion}></Text>
-            </View>
-          )}
-        </View>
-      </View>
-      <View style={styles.cajaboton}>
-        {is_following ? (
-          <Pressable style={styles.button} onPress={unfollowUser}>
-          <Text style={styles.buttonText}>Dejar de seguir</Text>
-        </Pressable>
-        ) : (
-          <Pressable style={styles.button} onPress={followUser}>
-          <Text style={styles.buttonText}>Seguir</Text>
-        </Pressable>
-        )}
-      </View>
-      <View style={styles.cajainferior}>
-        <View style={styles.cajaquien}>
-          <Text style={styles.userinferior}>
-            {getusuario ? getusuario : "--- "}
-          </Text>
-          <Text style={styles.mensaje}>estara en estos eventos ...</Text>
-        </View>
-      </View>
-      <View style={styles.cajaeventos}>
-        <EventListTopProfile usernameToget={getusuario as string}/>
-      </View>
-      <CustomModal
-        onBackdropPress={toggleAlert}
-        isVisible={isAlertVisible}
-        toggleModal={toggleAlert}
-        modalText={AlertText}
-      />
-      <Panel
-        isVisible={isPanelVisible}
-        togglePanel={togglePanel}
-        closePanel={closePanel}
-      />
-    </View>
+    </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "rgba(19, 19, 19, 1)",
-    width: "100%",
-    height: "100%",
-    position: "relative",
+    flex: 1,
   },
   superior: {
     position: "relative",
-    top: 0,
+    top: "1%",
+    marginBottom: "5%",
     width: "100%",
-    height: "15%",
+    height: "13%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -289,8 +387,8 @@ const styles = StyleSheet.create({
     bottom: "5%",
   },
   welcomeText: {
+    marginTop: "0%",
     fontStyle: "italic",
-    color: "white",
     fontSize: proportionalFontSize(24),
   },
   middle: {
@@ -301,9 +399,10 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   logo: {
+    top: "0%",
     height: 50,
     width: 50,
-    marginTop: "12%",
+    marginTop: width > 375 ? "0%" : "7%",
     position: "absolute",
   },
   cajafoto: {
@@ -328,11 +427,9 @@ const styles = StyleSheet.create({
     borderRadius: 55,
   },
   cajainfo: {
-    position: "absolute",
     width: "55%",
     height: "90%",
     left: "45%",
-    top: "0%",
   },
   cajaseguidores: {
     marginLeft: proportionalFontSize(5),
@@ -343,18 +440,16 @@ const styles = StyleSheet.create({
   },
   seguidosinfo: {
     width: "40%",
-    height: "60%",
+    height: height * 0.07,
     top: "10%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
   },
   seguidoresinfo: {
     width: "50%",
     marginLeft: "5%",
-    height: "60%",
+    height: height * 0.07,
     top: "10%",
     borderBottomWidth: 2,
-    borderBottomColor: "#ffffff",
   },
   seguidostextcaja: {
     alignItems: "center",
@@ -376,9 +471,9 @@ const styles = StyleSheet.create({
   cajadescripcion: {
     position: "absolute",
     width: "90%",
-    height: "50%",
+    height: "65%",
     left: "5%",
-    top: "35%",
+    top: width > 375 ? "45%" : "30%",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -400,10 +495,19 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    width: "50%",
-    height: "50%",
+    width: "60%",
+    height: "45%",
     backgroundColor: "rgba(255, 255, 255, 1)",
+    borderRadius: 10,
+  },
+  button2: {
+    alignItems: "center",
+    flexDirection: "row",
+    margin: "5%",
+    position: "absolute",
+    width: "40%",
+    height: "45%",
+    backgroundColor: "#f9342b",
     borderRadius: 10,
   },
   buttonText: {
@@ -413,16 +517,13 @@ const styles = StyleSheet.create({
   cajaboton: {
     justifyContent: "center",
     alignItems: "center",
-    position: "absolute",
-    top: "40%",
     width: "100%",
-    height: "10%",
+    height: "15%",
+    marginTop: "-2%",
   },
   cajainferior: {
-    position: "absolute",
     width: "100%",
     height: "50%",
-    top: "50%",
   },
 
   userinferior: {
@@ -451,7 +552,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: width > 375 ? "22%" : "25%", // Condicional para modificar la posición dependiendo del tamaño de la pantalla
     width: "100%",
-    height: "25%",
+    height: "20%",
   },
   cajaeventosimagenes: {
     display: "flex",

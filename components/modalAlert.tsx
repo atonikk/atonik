@@ -10,6 +10,7 @@ import {
   ScrollView,
   TextInput,
 } from "react-native";
+import { useAppTheme } from "@/constants/theme/useTheme";
 
 import Modal from "react-native-modal";
 
@@ -33,10 +34,12 @@ const CustomModal: React.FC<CustomModalProps> = ({
   modalText,
   onBackdropPress,
 }) => {
+  const theme = useAppTheme();
   return (
-    <Modal isVisible={isVisible} 
-    onBackdropPress={onBackdropPress as any}>
-      <View style={styles.alertmodal}>
+    <Modal isVisible={isVisible} onBackdropPress={onBackdropPress as any}>
+      <View
+        style={{ ...styles.alertmodal, backgroundColor: theme.colors.primary }}
+      >
         <Text style={styles.modaltext}>{modalText}</Text>
       </View>
     </Modal>
@@ -47,7 +50,6 @@ const styles = StyleSheet.create({
   alertmodal: {
     padding: "5%",
     borderRadius: 40,
-    backgroundColor: "rgba(45, 10, 66, 1)",
     alignItems: "center",
     justifyContent: "center",
     width: "90%",

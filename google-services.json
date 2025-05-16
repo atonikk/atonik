@@ -7,22 +7,14 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:667525490941:android:f997fd44c92f5ec2083694",
+        "mobilesdk_app_id": "1:667525490941:android:9498a8526880615f083694",
         "android_client_info": {
-          "package_name": "com.atonik.atonik"
+          "package_name": "com.atonik.Atonik"
         }
       },
       "oauth_client": [
         {
-          "client_id": "667525490941-p9ap4qhc72mo94sqr5fp64o7cpoqtl7u.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.atonik.atonik",
-            "certificate_hash": "c5faaa7cc0a39078cd97a1aa2953c88cab29ea1f"
-          }
-        },
-        {
-          "client_id": "667525490941-1o9tumj5tisa18b52pal7te3vcdeoddc.apps.googleusercontent.com",
+          "client_id": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -35,15 +27,53 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "667525490941-1o9tumj5tisa18b52pal7te3vcdeoddc.apps.googleusercontent.com",
+              "client_id": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com",
               "client_type": 3
-            },
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:667525490941:android:f997fd44c92f5ec2083694",
+        "android_client_info": {
+          "package_name": "com.atonik.atonik"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atonik.atonik",
+            "certificate_hash": "c5faaa7cc0a39078cd97a1aa2953c88cab29ea1f"
+          }
+        },
+        {
+          "client_id": "667525490941-r8ee7eji7ro70glltj7hskb126anujqi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.atonik.atonik",
+            "certificate_hash": "98d9b0f0a22324b7eba9704938d1da99be611303"
+          }
+        },
+        {
+          "client_id": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKgGEk3uUrrtBFBDuLwfz-Rupy_KG9t_s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
             {
-              "client_id": "667525490941-k259j62ahsebmeg6b59j2nssegdhnqct.apps.googleusercontent.com",
-              "client_type": 2,
-              "ios_info": {
-                "bundle_id": "com.atonik.atoniksignup"
-              }
+              "client_id": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com",
+              "client_type": 3
             }
           ]
         }

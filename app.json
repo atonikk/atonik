@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Atonik",
-    "slug": "atonik",
+    "slug": "Atonik",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,11 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.atonik.atonik",
-      "associatedDomains": [
-        "applinks:0ekko.app.link",
-        "applinks:0ekko-alternate.app.link"
-      ]
+      "bundleIdentifier": "com.atonik.Atonik",
+      "associatedDomains": ["applinks:go.atonikapp.com"]
     },
     "android": {
       "intentFilters": [
@@ -27,7 +24,7 @@
           "action": "VIEW",
           "data": {
             "scheme": "https",
-            "host": "*.0ekko.app.link",
+            "host": "go.atonikapp.com",
             "pathPrefix": "/"
           },
           "category": ["BROWSABLE", "DEFAULT"]
@@ -44,7 +41,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.atonik.atonik"
+      "package": "com.atonik.Atonik"
     },
     "web": {
       "bundler": "metro",
@@ -67,7 +64,7 @@
         "expoClientId": "667525490941-68itronpfn22nngiln6kja1lue0ap8el.apps.googleusercontent.com"
       },
       "eas": {
-        "projectId": "0554bf4e-8609-42b6-ab59-3887d519ea10"
+        "projectId": "c07ee56a-7b31-49f6-baee-af96df0750ea"
       }
     }
   }

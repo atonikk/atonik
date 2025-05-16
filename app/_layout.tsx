@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { SafeAreaProvider } from "react-native-safe-area-context"; // ✅ Importado
 import { useAppTheme } from "@/constants/theme/useTheme";
-import { useWindowDimensions } from "react-native";
+import { useColorScheme, useWindowDimensions } from "react-native";
 import { StyleSheet } from "react-native";
 import React, { useState, useCallback } from "react";
 
@@ -24,16 +24,20 @@ export default function RootLayout() {
 }
 
 export const linking = {
-  prefixes: ['https://0ekko.app.link', 'https://0ekko-alternate.app.link', 'atonik://'],
+  prefixes: [
+    "https://0ekko.app.link",
+    "https://0ekko-alternate.app.link",
+    "atonik://",
+  ],
   config: {
     screens: {
-      '(tabs)': {
+      "(tabs)": {
         screens: {
-          home: 'home',
+          home: "home",
         },
       },
       event: {
-        path: 'event/:eventoId',
+        path: "event/:eventoId",
         parse: {
           eventoId: (id: string) => id,
         },
@@ -45,7 +49,7 @@ export const linking = {
 function RootLayoutNav() {
   const [isAppReady, setIsAppReady] = useState(false);
   const theme = useAppTheme();
-
+  const colorScheme = useColorScheme();
   return (
     <Stack
       screenOptions={{
@@ -152,6 +156,18 @@ function RootLayoutNav() {
         name="screens/Account/Register"
         options={{
           headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="screens/Account/UserProfile"
+        options={{
+          headerShown: true,
+          title: "",
+          headerShadowVisible: false,
+          headerStyle: {
+            backgroundColor: theme.colors.background,
+          },
+          headerTintColor: colorScheme === "dark" ? "#fff" : "#000", // Cambiar el color de la flecha
         }}
       />
       <Stack.Screen name="screens/Payment/NequiForm" options={{}} />

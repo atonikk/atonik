@@ -64,7 +64,7 @@ const Register: React.FC = () => {
   const [photo, setPhoto] = useState("");
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId:
-      "667525490941-4gldfjapqkeeicmpggu0enuoc73pcc1r.apps.googleusercontent.com",
+      "667525490941-l9q8npmbu0ouj33c176lar0oq61aseod.apps.googleusercontent.com",
   });
   useEffect(() => {
     if (params) {
