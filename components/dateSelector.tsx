@@ -1,35 +1,36 @@
 import React, { useState, useLayoutEffect } from "react";
-import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { Dimensions,View, Text, TouchableOpacity, StyleSheet, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import left from "../assets/images/left.png";
-import right from "../assets/images/right.png";
 import url from "../constants/url.json";
 import EventItems from "./eventItemList";
 import Carrousel from "@/components/carrouselHome";
+
 const DateSelector = () => {
+  const { height, width } = Dimensions.get('window');
   const [absoluteDate, setAbsoluteDate] = useState(new Date());
   const [dailyEvents, setDailyEvents] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const addDays = (date: Date, days: number) => {
+  const addDays = (date, days) => {
     const addDaysDate = new Date(date); 
     addDaysDate.setDate(addDaysDate.getDate() + days);
     return addDaysDate;
   };
 
-  const formatDate = (date: Date) => {
-    const formatDate1 = addDays(date, 1);
-    const days = ["Dom", "Lun", "Mar","Mie", "Jue", "Vie", "Sab"];
-    return [days[formatDate1.getDay()], formatDate1.getDate()];
+  const formatDate = (date) => {
+    const days = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+    return [days[date.getDay()], date.getDate()];
   };
 
-  const getMonthName = (date: Date) => { const months = ["enero", "febrero", "marzo", "abril", "mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]; return months[addDays(date, 1).getMonth()]; };
+  const getMonthName = (date) => { 
+    const months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]; 
+    return months[date.getMonth()];
+  };
 
-
-  const fetchEventsOne = async (fetchDate: Date) => {
+  const fetchEventsOne = async (fetchDate) => {
     try {
       setLoading(true);
-      const response = await fetch(`${url.url}/api/events/one?date=${fetchDate}`);
+      const response = await fetch(`${url.url}/api/events/one?date=${fetchDate.toISOString()}`);
       if (!response.ok) throw new Error("Network response was not ok");
       setDailyEvents(await response.json());
     } catch (error) {
@@ -41,138 +42,113 @@ const DateSelector = () => {
 
   useLayoutEffect(() => {
     fetchEventsOne(absoluteDate);
-  }, []);
+  }, [absoluteDate]);
+
+  const handleDatePress = (offset) => {
+    const newDate = addDays(absoluteDate, offset);
+    setAbsoluteDate(newDate);
+    fetchEventsOne(newDate);
+  };
+
+  const renderDateItem = ({ item }) => {
+    const isActive = item === 0;
+    const date = addDays(absoluteDate, item);
+    const [day, num] = formatDate(date);
+
+    return (
+      <TouchableOpacity
+      onPress={() => handleDatePress(item)}
+      style={[styles.dateItem, isActive ? styles.activeDate : {}]}
+    >
+      <Text style={[styles.dateText, isActive ? styles.activeDateText : {}]}>
+        {day}
+      </Text>
+      <Text style={[styles.dateText, isActive ? styles.activeDateText : {}]}>
+        {num}
+      </Text>
+    </TouchableOpacity>
+    
+    );
+  };
 
   return (
-    <View     style={styles.container}> 
-    <LinearGradient
-    colors={[ '#2c1c3b','#280946']}
-  locations={[0.46,0.7,  1]}
+    <View style={styles.container}> 
+   
+        <Carrousel />
+        <LinearGradient
+  colors={["#5A2BCC", "#130E1E"]}
+  style={[styles.gradient,{ height: height * 0.14 , width: width}]} // Ajusta la altura del gradiente
+  
+  start={{ x: 0.5, y: 0 }}
+  end={{ x: 0.5, y: 0.70 }}
+  
+>
+  <FlatList
+    data={[-3, -2, -1, 0, 1, 2, 3]}
+    horizontal
+    keyExtractor={(item) => item.toString()}
+    renderItem={renderDateItem}
+    contentContainerStyle={styles.dateList}
+    showsHorizontalScrollIndicator={false}
+    decelerationRate="fast"
+  />
+</LinearGradient>
 
-    start={{ x: 0, y: 0 }}
-  end={{ x: 1, y: 1 }}
-style={[styles.containerGradient,]}
-  >
-         <Carrousel  />
-        
-      <View style={styles.allText}>
-    
 
-        {[-2, -1, 0, 1, 2].map(offset => (
-          <TouchableOpacity
-            key={offset}
-            onPress={() => {
-              const newDate = addDays(absoluteDate, offset);
-              fetchEventsOne(newDate);
-              setAbsoluteDate(newDate);
-            }}
-            style={[styles.textContainer, offset === 0 ? styles.middle : {}]}
-          >
-            <Text style={[styles.letter, offset === 0 ? styles.middleText : {}]}>
-              {formatDate(addDays(absoluteDate, offset))[0]}  {formatDate(addDays(absoluteDate, offset))[1]}
-            </Text>
-       
-          </TouchableOpacity>
-        ))}
-
-    
-      </View>
-      <View style={styles.monthContainer}>
-          <Text style={styles.month}>Eventos {getMonthName(absoluteDate)}</Text></View>
-         
-      </LinearGradient>
+ 
       <EventItems events={dailyEvents} state={"event"} />
-      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
- 
+    flex: 1,
     paddingHorizontal: 16,
-    width: "60%",
-    borderBottomLeftRadius: 64,
-    borderBottomRightRadius: 54,
-    marginBottom: 10,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
    
   },
-  containerGradient: {
- 
-    paddingHorizontal: 16,
-    width: "60%",
-    borderBottomLeftRadius: 64,
-    borderBottomRightRadius: 54,
-    marginBottom: 10,
+  gradient: {
+    paddingVertical: 20,
    
-   
-  },
-  allText: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 0,
-    marginTop: "40%",
-    paddingHorizontal: "26%",
-  },
-  rowContainer: {
+    height:"30%",
     alignItems: "center",
-    justifyContent: "center",
-    display: "flex",
-    flexDirection: "row",
-  }, 
-  row: {
-    height: 45,
-    width: 30,
+    zIndex: -9,
   },
-  textContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 52,
-    paddingVertical: 5,
+  dateList: {
+    paddingVertical: 10,
+    backgroundColor: "#00000",
+  
+  },
+  dateItem: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
     borderRadius: 10,
+   
+    marginHorizontal: 5,
     display: "flex",
-    flexDirection: "row",
+    flexDirection: "column",
+    justifyContent: "center",
   },
-  letter: {
-    fontSize: 18,
-    color: "#fff",
-    fontWeight: "300",
+  activeDate: {
+    backgroundColor: "#936fb152",
+  },
+  dateText: {
+    fontSize: 17,
+    color: "#ffffff",
+    fontWeight: "200",
     textAlign: "center",
+  },
+  activeDateText: {
+    color: "#fff",
   },
   monthContainer: {
-    marginTop: "0%",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
+    marginTop: 15,
   },
-  month: {
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    backgroundColor: "#6e697253",
-    borderRadius: 10,
-    fontSize: 15,
-    color: "#cacaca",
-    fontWeight: "100",
-    textAlign: "center",
-    marginHorizontal:"auto"
-  },
-  num: {
-    fontSize: 20,
-    color: "#fff",
-    fontWeight: "300",
-    textAlign: "center",
-    
-  },
-  middleText: {
-  
-    borderRadius: 10,
-    color: "#fff",
-  },
-  middle: {
-    backgroundColor: "#6e697253",
-    borderRadius: 10,
-    marginBottom: 15,
+  monthText: {
+    fontSize: 16,
+    color: "#8c00ff",
   },
 });
 

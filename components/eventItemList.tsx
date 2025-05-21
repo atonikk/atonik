@@ -31,7 +31,7 @@ const EventItem = ({ events, state, navigation }) => {
 };
 const styles = StyleSheet.create({
   container: {
-  marginTop: 15,
+  marginTop: 0,
     width:Dimensions.get('window').width*0.95,
   
   },

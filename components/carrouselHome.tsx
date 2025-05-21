@@ -9,6 +9,7 @@ Image,
     Dimensions,
   } from "react-native";
 import { useSharedValue } from "react-native-reanimated";
+import { LinearGradient } from 'expo-linear-gradient';
 import Carousel, {
   ICarouselInstance,
   Pagination,
@@ -37,7 +38,14 @@ export default function Carrousel() {
   
     return (
     
-      <View  style={styles.container}>
+       <LinearGradient
+   colors={["#130E1E","#5A2BCC", ]}
+   style={[styles.container]} // Ajusta la altura del gradiente
+   
+   start={{ x: 0.5, y: 0.2 }}
+   end={{ x: 0.5, y: 1 }}
+   
+ >
         <Carousel
           ref={ref}
           width={width}
@@ -46,7 +54,7 @@ export default function Carrousel() {
             parallaxScrollingScale: 0.9,
             parallaxScrollingOffset: 50,
           }}
-          height={width / 1.4}
+          height={height / 4}
           data={data}
           scrollAnimationDuration={1500}
           autoPlayInterval={1500}
@@ -73,7 +81,7 @@ export default function Carrousel() {
         />
 
   
-      </View>
+</LinearGradient>
   
     );
   }
@@ -87,7 +95,7 @@ export default function Carrousel() {
     },
   
     container: {
-
+      backgroundColor: "#5A2BCC",
 
   
       alignItems: "center",

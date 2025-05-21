@@ -214,9 +214,7 @@ const CheckNequi: React.FC = () => {
         </Text>
       </View>
       <Pressable 
-      onPress={
-        
-      }
+    
       style={styles.cancelPayment}>
         <Text style={styles.textwhite}>Cancelar pago</Text>
       </Pressable>

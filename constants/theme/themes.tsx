@@ -9,19 +9,23 @@ export const LightTheme: Theme = {
     card: "#ffffff",
     separator: "#d1cece",
     input:"#ffffff",
-    placeholder:"#000000",
+    placeholder:"#f0f0f0",
+    state:false,
+    placeholdertext:"#737373",
   },
 };
 
 export const DarkTheme: Theme = {
   colors: {
-    background: "#121212",
+    background: "#130E1E",
     text: "#ffffff",
     primary: "#6438D7",
     secondary: "#ad7cfc",
     card: "#1f1f1f",
     separator: "#333333",
     input:"#292d3f",
-    placeholder:"#766b80",
+    placeholder:"#38324F",
+    state:true,
+    placeholdertext:"#A096B2",
   },
 };
