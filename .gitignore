@@ -15,6 +15,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+atonik-proyect-firebase-adminsdk-fbsvc-8d99ebe2c3.json
 
 # Metro
 .metro-health-check*

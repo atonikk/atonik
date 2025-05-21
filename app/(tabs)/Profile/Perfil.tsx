@@ -47,6 +47,7 @@ import shadowDark from "@/assets/images/userShadow.png";
 import shadowLight from "@/assets/images/userShadowLight.png";
 import logoDark from "@/assets/images/logo.png";
 import logoLight from "@/assets/images/logoLight.png";
+
 const { width, height } = Dimensions.get("window");
 import { useProfilePhotoStore } from "@/app/utils/useStore";
 import { useAppTheme } from "@/constants/theme/useTheme";
@@ -59,6 +60,8 @@ const proportionalFontSize = (size: number) => {
 const Profile: React.FC = () => {
   const theme = useAppTheme();
   const colorScheme = useColorScheme();
+  const setIsPromoter = useProfilePhotoStore(state => state.setIsPromoter);
+  const isPromoter = useProfilePhotoStore(state => state.isPromoter);
   const profilePhoto = useProfilePhotoStore((state) => state.profilePhoto);
   const setProfilePhoto = useProfilePhotoStore(
     (state) => state.setProfilePhoto
@@ -81,7 +84,27 @@ const Profile: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [AlertText, setAlertText] = useState("");
   const [isAlertVisible, setAlertVisible] = useState(false);
-
+  // const requestUserPermission = async () => {
+  //   const authStatus = await getMessaging.requestPermission();
+  //   const enabled =
+  //     authStatus === getMessaging.AuthorizationStatus.AUTHORIZED ||
+  //     authStatus === getMessaging.AuthorizationStatus.PROVISIONAL;
+  //   if (enabled) {
+  //     console.log("Authorization status:", authStatus);
+  //   }
+  // };
+  // useEffect(() => {
+  //   if (requestUserPermission()) {
+  //     console.log("Permisos de notificaciones concedidos");
+  //     messaging()
+  //       .getToken()
+  //       .then((token) => {
+  //         console.log("Token de notificación:", token);
+  //       });
+  //   } else {
+  //     console.log("Permisos de notificaciones denegados");
+  //   }
+  // }, []);
   const showModalAlert = (message: string) => {
     setAlertText(message);
     setAlertVisible(true);
@@ -145,7 +168,8 @@ const Profile: React.FC = () => {
       );
       if (response.ok) {
         const data = await response.json();
-
+        console.log("User data:", data.isPromoter);
+        setIsPromoter(data.isPromoter);
         setdescriptionProfile(data.description);
         setProfilePhoto(data.profile_photo);
         setFollowers(data.followersnum);
@@ -353,7 +377,7 @@ const Profile: React.FC = () => {
                 left: "2%",
                 height: 40,
                 width: 40,
-                top: "0%",
+                top: height * 0.005,
               }}
             >
               <Image
@@ -394,7 +418,6 @@ const Profile: React.FC = () => {
                   marginLeft: "5%",
                   marginTop: "5%",
                   resizeMode: "contain",
-
                   borderRadius: 10,
                 }}
               />
@@ -741,7 +764,7 @@ const Profile: React.FC = () => {
               <Text
                 style={{
                   textAlign: "center",
-                  fontSize: proportionalFontSize(20), // Agrandado
+                  fontSize: proportionalFontSize(20),
                   color: theme.colors.text,
                   marginBottom: 10,
                   fontFamily: "Inter-Light",
@@ -749,16 +772,11 @@ const Profile: React.FC = () => {
                 }}
               >
                 Iniciar sesión para ver tus futuros {"\n"}
-                <Text
-                  style={{
-                    fontSize: proportionalFontSize(22), // Agrandado
-                    fontFamily: "Inter-Bold",
-                    fontWeight: "bold",
-                  }}
-                >
+                <Text style={{ fontFamily: "Inter-Bold", fontWeight: "bold" }}>
                   eventos
                 </Text>
               </Text>
+
               <Image
                 source={ticketProfile}
                 style={{

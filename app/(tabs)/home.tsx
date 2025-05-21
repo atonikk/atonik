@@ -11,7 +11,7 @@ const AtonikScreen = () => {
     <ScrollView style={[styles.container,{ backgroundColor: theme.colors.background }]}>
       <Image source={require('@/assets/images/Atonik.png')} style={[
         styles.titleImage,
-        { tintColor: theme.colors.state ? "#ffff " : theme.colors.primary  }
+        { tintColor: "#fff" }
       ]} />
 
       <LocationSelector />

@@ -39,7 +39,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { useProfilePhotoStore } from "@/app/utils/useStore";
 import { useAppTheme } from "@/constants/theme/useTheme";
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 export default function Delete() {
   const setProfilePhoto = useProfilePhotoStore.getState().setProfilePhoto;
@@ -128,7 +128,13 @@ export default function Delete() {
         >
           <Image
             source={colorScheme === "dark" ? drawerDark : drawerLight}
-            style={{ resizeMode: "contain", width: 40, height: 40 }}
+            style={{
+              position: "absolute",
+              left: "2%",
+              height: 40,
+              width: 40,
+              top: height * 0.005,
+            }}
           />
         </Pressable>
       </View>
@@ -154,7 +160,7 @@ export default function Delete() {
 
         <Pressable
           onPress={() => {
-            const phoneNumber = "+573208435424";
+            const phoneNumber = "+573125034112";
             const message = "Hola Atonik, tengo problemas con mi cuenta.";
             const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
               message

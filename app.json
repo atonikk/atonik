@@ -44,7 +44,7 @@
           "apiKey": "AIzaSyA9NYFSpTJRqoo33bY8aWI27Txag2c0Q2s"
         }
       },
-      "googleServicesFile": "./google-services.json",
+      "googleServicesFile": "./assets/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"

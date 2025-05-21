@@ -221,7 +221,7 @@ export default function Tab() {
             >
               Ubicación
             </Text>
-            {/* <MapView
+            <MapView
               style={styles.map}
               initialRegion={{
                 latitude: parseFloat(event.latitude), // Plaza de Bolívar latitude
@@ -239,7 +239,7 @@ export default function Tab() {
                 strokeColor={event.colors[1]}
                 fillColor={hexToRgb(event.colors[0], 0.3)}
               />
-            </MapView> */}
+            </MapView> 
           </View>
         </LinearGradient>
       </ScrollView>

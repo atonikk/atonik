@@ -1,24 +1,28 @@
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+// app/(drawer)/_layout.tsx
 import { Drawer } from "expo-router/drawer";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
+import { useProfilePhotoStore } from "@/app/utils/useStore";
 
-export default function Layout() {
+export default function DrawerLayout() {
   const [isVisible, setIsVisible] = useState(false);
+  const [showPromotor, setShowPromotor] = useState(false);
+
+  const isPromoter = useProfilePhotoStore((state) => state.isPromoter);
 
   useEffect(() => {
-    const checkToken = async () => {
+    const fetch = async () => {
       const token = await AsyncStorage.getItem("access_token");
-      setIsVisible(!!token); // true si hay token, false si no
+      setIsVisible(!!token);
+      setShowPromotor(isPromoter);
     };
-
-    checkToken();
-  }, []);
+    fetch();
+  }, [isPromoter]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Drawer
-        initialRouteName="Perfil"
         screenOptions={{
           headerShown: false,
           drawerStyle: {
@@ -38,18 +42,18 @@ export default function Layout() {
       >
         <Drawer.Screen
           name="Perfil"
-          options={{
-            drawerLabel: "Perfil",
-            title: "Perfil",
-          }}
+          options={{ drawerLabel: "Perfil", title: "Perfil" }}
         />
         {isVisible && (
           <Drawer.Screen
             name="Delete"
-            options={{
-              drawerLabel: "Eliminar Cuenta",
-              title: "Eliminar Cuenta",
-            }}
+            options={{ drawerLabel: "Eliminar Cuenta", title: "Eliminar Cuenta" }}
+          />
+        )}
+        {showPromotor && (
+          <Drawer.Screen
+            name="Promotor"
+            options={{ drawerLabel: "Promotor", title: "Promotor" }}
           />
         )}
       </Drawer>
